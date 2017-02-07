@@ -34,6 +34,9 @@ class TPlanFormation extends TObjetStd
 		parent::add_champs('fk_type_financement', array('type'=>'integer','index'=>true));
 		parent::add_champs('date_start, date_end', array('type'=>'date'));
 		parent::add_champs('ref,title', array('type'=>'string'));
+		// Ici
+		parent::add_champs('budget', array('type'=>'float'));
+		// Jusque là
 		parent::add_champs('fk_user_modification,fk_user_creation,entity', array('type'=>'integer','index'=>true));
 
 		parent::_init_vars();
@@ -69,6 +72,9 @@ class TPlanFormation extends TObjetStd
 		$sql .= ' planform.fk_user_creation, ';
 		$sql .= ' planform.entity, ';
 		$sql .= ' planform.fk_type_financement,';
+		// Ici
+		$sql .= ' planform.budget, ';
+		// Jusque là
 		$sql .= ' dict.code as type_fin_code, ';
 		$sql .= ' dict.label as type_fin_label ';
 		$sql .= ' FROM ' . $this->get_table().' as planform';
@@ -92,6 +98,9 @@ class TPlanFormation extends TObjetStd
 				'date_start' => $langs->trans('DateStart'),
 				'date_end' => $langs->trans('DateEnd'),
 				'title' => $langs->trans('Title'),
+				// Ici
+				'budget' => $langs->trans('Budget'),
+				// Jusque là
 				'type_fin_label' => $langs->trans('PFTypeFin')
 		);
 		if ($mode == 'title') {
@@ -182,10 +191,19 @@ class TSection extends TObjetStd
 		parent::add_champs('title,ref', array('type'=>'string','index'=>true));
 		parent::add_champs('fk_usergroup', array('type'=>'integer','index'=>true));
 		parent::add_champs('fk_user_modification,fk_user_creation,entity', array('type'=>'integer','index'=>true));
-
 		parent::_init_vars();
 		parent::start();
 
+	}
+	
+	function save(&$PDOdb, $budget = '') {
+		if(!empty($budget)) {
+			$planSection = new TSectionPlanFormation();
+                        $planSection->loadByCustom($PDOdb, array('fk_planform' => $_REQUEST['plan_id'], 'fk_section' => $_REQUEST['id']));
+                        $planSection->budget = $budget;
+                        $planSection->save($PDOdb);
+		}
+		parent::save($PDOdb);
 	}
 
 	/**
@@ -348,10 +366,28 @@ class TSectionPlanFormation extends TObjetStd
 		global $langs;
 
 		parent::set_table(MAIN_DB_PREFIX . 'planform_planform_section');
-		parent::add_champs('fk_planform,fk_section', array('type'=>'integer','index'=>true));
+		parent::add_champs('fk_planform,fk_section,fk_section_parente', array('type'=>'integer','index'=>true));
+		parent::add_champs('budget', array('type'=>'float','index'=>true));
 
 		parent::_init_vars();
 		parent::start();
+	}
+	
+	function loadByCustom(&$db, $TParam, $annexe=false) {                
+		$sql = "SELECT ".OBJETSTD_MASTERKEY." FROM ".$this->get_table()." WHERE 1=1";
+		
+		foreach($TParam as $key => $value) {
+			$sql .= " AND $key=$value";
+		}
+		
+		$sql .= ' LIMIT 1';
+	  	$db->Execute($sql);
+		if($db->Get_line()) {
+                    return $this->load($db, $db->Get_field(OBJETSTD_MASTERKEY), $annexe);
+		}
+		else {
+			return false;
+		}
 	}
 
 	/**
@@ -372,6 +408,8 @@ class TSectionPlanFormation extends TObjetStd
 		$sql .= ' g.nom as group_name, ';
 		$sql .= ' s.fk_user_modification, ';
 		$sql .= ' s.fk_user_creation, ';
+		$sql .= ' ps.fk_section_parente, ';     
+		$sql .= ' ps.budget, ';     
 		$sql .= ' s.entity, ';
 		$sql .= ' p.rowid as planform_id ';
 		$sql .= ' FROM ' . $this->get_table().' as ps';
@@ -411,5 +449,34 @@ class TSectionPlanFormation extends TObjetStd
 		}
 
 		return $sql;
+	}
+	
+	/**
+	 *
+	 * @param string $mode
+	 */
+	public function getTrans($mode = 'std') {
+		global $langs;
+		$langs->load('planformation@planformation');
+		$langs->load("users");
+
+		$transarray = array (
+				'rowid' => $langs->trans('Id'),
+				'date_cre' => $langs->trans('Date_cre'),
+				'date_maj' => $langs->trans('Date_maj'),
+				'fk_planform' => $langs->trans('Planform'),
+				'fk_section' => $langs->trans('Section'),
+				'fk_section_parente' => $langs->trans('Parent'),
+				'budget' => $langs->trans('Budget'),
+		);
+		if ($mode == 'title') {
+			foreach ( $transarray as $key => $val ) {
+				$trans_array_title[$key . '_title'] = $val;
+			}
+
+			$transarray = $trans_array_title;
+		}
+
+		return $transarray;
 	}
 }

@@ -90,18 +90,20 @@ function planformation_section_prepare_head(TSection &$pfs)
 	$head = array();
 
 	$head[$h][0] = dol_buildpath("/planformation/section.php?id=".$pfs->getId(), 1);
+        if(!empty($_REQUEST['plan_id']))
+            $head[$h][0] = dol_buildpath("/planformation/section.php?id=".$pfs->getId()."&plan_id=".$_REQUEST['plan_id'], 1);
 	$head[$h][1] = $langs->trans("Card");
 	$head[$h][2] = 'section';
 	$h++;
 
 	$head[$h][0] = dol_buildpath("/planformation/section.php?id=".$pfs->getId().'&action=info', 1);
+        if(!empty($_REQUEST['plan_id']))
+            $head[$h][0] = dol_buildpath("/planformation/section.php?id=".$pfs->getId().'&plan_id='.$_REQUEST['plan_id'].'&action=info', 1);
 	$head[$h][1] = $langs->trans("Info");
 	$head[$h][2] = 'info';
 	$h++;
 
 	complete_head_from_modules($conf, $langs, $object, $head, $h, 'planformation_section');
-
-	return $head;
-
+        
 	return $head;
 }

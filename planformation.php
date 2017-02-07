@@ -110,7 +110,8 @@ if (! empty($action)) {
 	if ($pf->load($PDOdb, GETPOST('id', 'int'))) {
 		_card($PDOdb, $pf, $typeFin, 'view');
 	} else {
-		setEventMessage($langs->trans('ImpossibleLoadElement'), 'errors');
+		//setEventMessage($langs->trans('ImpossibleLoadElement'), 'errors');
+		_list($PDOdb, $pf);
 	}
 } else {
 	_list($PDOdb, $pf);
@@ -242,6 +243,7 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 	echo $formCore->hidden('id', $pf->getId());
 	echo $formCore->hidden('action', 'save');
 	echo $formCore->hidden('entity', getEntity());
+        
 	if ($pf->getId() <= 0) {
 		echo $formCore->hidden('fk_user_creation', $user->id);
 	} else {
@@ -272,6 +274,9 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 		$data['type_fin_label'] = $formCore->combo('', 'fk_type_financement', $typeFin->lines, '');
 		$data['date_start'] = $formCore->doliCalendar('date_start', $pf->date_start);
 		$data['date_end'] = $formCore->doliCalendar('date_end', $pf->date_end);
+		// Ici
+		$data['budget'] = $formCore->texte('', 'budget', $pf->budget, 30, 255);
+		// Jusque là
 		if ($conf->global->PF_ADDON == 'mod_planformation_universal') {
 			$data['ref'] = $formCore->texte('', 'ref', $pf->ref, 15, 255);
 		} elseif ($conf->global->PF_ADDON == 'mod_planformation_simple') {
@@ -285,11 +290,15 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 
 		$buttons = $btCancel . $btSave;
 	} else {
+                //var_dump($_REQUEST);
 		$data['titre'] = load_fiche_titre($langs->trans("PFPlanFormationCard"), '');
 		$data['type_fin_label'] = $typeFin->lines[$pf->fk_type_financement];
 		$data['date_start'] = dol_print_date($pf->date_start);
 		$data['date_end'] = dol_print_date($pf->date_end);
 		$data['title'] = $pf->title;
+		// Ici
+		$data['budget'] = $pf->budget;
+		// Jusque là
 		$data['ref'] = $formCore->texte('', 'ref', $pf->ref, 15);
 		$buttons = $btRetour . ' ' . $btModifier . ' ' . $btDelete;
 	}
@@ -374,7 +383,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 					'nbLine' => $conf->liste_limit
 			),
 			'link' => array (
-					'ref' => img_picto('', 'object_planformation@planformation') . ' <a href="?id=@ID@">@val@</a>'
+					'ref' => img_picto('', 'object_planformation@planformation') . " <a href='section.php?id=@section_id@&plan_id=$pf->rowid'>@val@</a>"
 			),
 			'hide' => array (
 					'ID',

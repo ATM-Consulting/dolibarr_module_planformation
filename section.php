@@ -34,6 +34,7 @@ $PDOdb = new TPDOdb();
 
 $tbs = new TTemplateTBS();
 $pfs = new TSection();
+$sectionP = new TSectionPlanFormation();
 $typeFin = new TTypeFinancement();
 
 $action = GETPOST('action');
@@ -69,8 +70,9 @@ if (! empty($action)) {
 		case 'save' :
 			$pfs->load($PDOdb, GETPOST('id', 'int'));
 				$pfs->set_values($_REQUEST);
-
-				$pfs->save($PDOdb);
+                                
+                                
+				$pfs->save($PDOdb, GETPOST('budget'));
 				_card($PDOdb, $pfs, 'view');
 
 			break;
@@ -167,10 +169,10 @@ function _info(TPDOdb &$PDOdb, TSection &$pfs) {
 	$head = planformation_section_prepare_head($pfs);
 	dol_fiche_head($head, 'info', $langs->trans("PFSectionCard"), 0);
 
-	$pf->date_creation = $pfs->date_cre;
-	$pf->date_modification = $pfs->date_maj;
-	$pf->user_creation = $pfs->fk_user_creation;
-	$pf->user_modification = $pfs->fk_user_modification;
+	$pfs->date_creation = $pfs->date_cre;
+	$pfs->date_modification = $pfs->date_maj;
+	$pfs->user_creation = $pfs->fk_user_creation;
+	$pfs->user_modification = $pfs->fk_user_modification;
 	print '<table width="100%"><tr><td>';
 	dol_print_object_info($pfs);
 	print '</td></tr></table>';
@@ -199,7 +201,8 @@ function _card(TPDOdb &$PDOdb, TSection &$pfs, $mode = '') {
 	echo $formCore->hidden('id', $pfs->getId());
 	echo $formCore->hidden('action', 'save');
 	echo $formCore->hidden('entity', getEntity());
-
+	echo $formCore->hidden('plan_id', $_REQUEST['plan_id']);
+	
 	$TBS = new TTemplateTBS();
 
 	//Find all existing user group
@@ -215,19 +218,39 @@ function _card(TPDOdb &$PDOdb, TSection &$pfs, $mode = '') {
 			}
 		}
 	}
-
-	$btRetour = '<a class="butAction" href="' . dol_buildpath("/planformation/section.php?action=list", 1) . '">' . $langs->trans('BackToList') . '</a>';
-	$btCancel = $formCore->btsubmit($langs->trans('Cancel'), 'cancel');
-	$btSave = $formCore->btsubmit($langs->trans('Valid'), 'save');
-	$btModifier = '<a class="butAction" href="' . dol_buildpath('/planformation/section.php?id=' . $pfs->rowid . '&action=edit', 1) . '">' . $langs->trans('PFSectionEdit') . '</a>';
+        $planId = GETPOST('plan_id');
+        if(!empty($planId)) {
+            $btCancel = '<a class="butAction" href="' . dol_buildpath('/planformation/section.php?id=' . $pfs->rowid . '&plan_id=' . $_GET['plan_id'], 1) . '">' . $langs->trans('Cancel') . '</a>';
+            $btModifier = '<a class="butAction" href="' . dol_buildpath('/planformation/section.php?id=' . $pfs->rowid . '&plan_id=' . $_GET['plan_id'] . '&action=edit', 1) . '">' . $langs->trans('PFSectionEdit') . '</a>';
+            $btRetour = '<a class="butAction" href="' . dol_buildpath('/planformation/planformation.php?id=' . $planId, 1) . '">' . $langs->trans('BackToList') . '</a>';
+	}
+        else {
+            $btRetour = '<a class="butAction" href="' . dol_buildpath("/planformation/section.php?action=list", 1) . '">' . $langs->trans('BackToList') . '</a>';
+            $btCancel = '<a class="butAction" href="' . dol_buildpath('/planformation/section.php?id=' . $pfs->rowid, 1) . '">' . $langs->trans('Cancel') . '</a>';//$formCore->btsubmit($langs->trans('Cancel'), 'cancel');
+            $btSave = $formCore->btsubmit($langs->trans('Valid'), 'save');
+            $btModifier = '<a class="butAction" href="' . dol_buildpath('/planformation/section.php?id=' . $pfs->rowid . '&action=edit', 1) . '">' . $langs->trans('PFSectionEdit') . '</a>';
+        }
+	
+	
+	
+	
 	$btDelete = "<input type=\"button\" id=\"action-delete\" value=\"" . $langs->trans('Delete') . "\" name=\"cancel\" class=\"butActionDelete\" onclick=\"if(confirm('" . $langs->trans('PFDeleteConfirm') . "'))document.location.href='?action=delete&id=" . $pfs->rowid . "'\" />";
 
 	// Fill form with title and data
 	$data = $pfs->getTrans('title');
-
+	$planformSection = new TSectionPlanFormation();
+        $planformSection->loadByCustom($PDOdb, array('fk_planform' => $_REQUEST['plan_id'], 'fk_section' => $_REQUEST['id']));
+	
+	
+        $data['budget_title'] = 'Budget';
+        $data['plan_id'] = GETPOST('plan_id', 'int');
 	if ($mode == 'edit') {
 		$data['titre'] = load_fiche_titre($pfs->getId() > 0 ? $langs->trans("PFSectionEdit") : $langs->trans("PFSectionNew"), '');
 		$data['title'] = $formCore->texte('', 'title', $pfs->title, 30, 255);
+                $data['budget'] = $formCore->texte('', 'budget', $planformSection->budget, 30, 255);
+                if(isset($_REQUEST['plan_id'])) {
+		
+		}
 		if ($conf->global->PF_SECTION_ADDON == 'mod_planformation_section_universal') {
 			$data['ref'] = $formCore->texte('', 'ref', $pfs->ref, 15, 255);
 		} elseif ($conf->global->PF_SECTION_ADDON == 'mod_planformation_section_simple') {
@@ -244,11 +267,11 @@ function _card(TPDOdb &$PDOdb, TSection &$pfs, $mode = '') {
 	} else {
 		$data['titre'] = load_fiche_titre($langs->trans("PFSectionCard"), '');
 		$data['title'] = $pfs->title;
-		$data['ref'] = $formCore->texte('', 'ref', $pfs->ref, 15);
+                $data['budget'] = $planformSection->budget;
+                $data['ref'] = $formCore->texte('', 'ref', $pfs->ref, 15);
 		$data['fk_usergroup'] =  $usergroupsArray[$pfs->fk_usergroup];
 		$buttons = $btRetour . ' ' . $btModifier . ' ' . $btDelete;
 	}
-
 	// Todo mandatory fields
 
 	print $TBS->render('./tpl/section.tpl.php', array (),

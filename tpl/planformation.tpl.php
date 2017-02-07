@@ -21,6 +21,10 @@
 		<td width="20%">[planformation.type_fin_label_title; strconv=no;]</td>
 		<td>[planformation.type_fin_label; strconv=no;]</td>
 	</tr>
+	<tr>
+		<td width="20%">[planformation.budget_title; strconv=no;]</td>
+		<td>[planformation.budget; strconv=no;]</td>
+	</tr>
 </table>
 
 <br />
