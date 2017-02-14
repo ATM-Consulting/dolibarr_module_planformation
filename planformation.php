@@ -105,6 +105,17 @@ if (! empty($action)) {
 			}
 
 			break;
+                case 'delete_link' :
+                        if ($pf->load($PDOdb, GETPOST('plan_id', 'int'))) {
+                            $link_pfs = new TSectionPlanFormation();
+                            $link_pfs->loadByCustom($PDOdb, array('fk_planform' => $_REQUEST['plan_id'], 'fk_section' => $_REQUEST['section_id']));
+                            $link_pfs->delete($PDOdb);
+                            
+                            _card($PDOdb, $pf, $typeFin, 'view');
+			} else {
+                            setEventMessage($langs->trans('ImpossibleLoadElement'), 'errors');
+			}
+                        break;
 	}
 } elseif (isset($_REQUEST['id'])) {
 	if ($pf->load($PDOdb, GETPOST('id', 'int'))) {
@@ -374,7 +385,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 			$arrayUserGroups[$line->id] = $line->nom;
 		}
 	}
-
+        
 	echo $r->render($PDOdb, $pfs_link->getSQLFetchAll(array (
 			'p.rowid' => $pf->rowid
 	)), array (
@@ -383,7 +394,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 					'nbLine' => $conf->liste_limit
 			),
 			'link' => array (
-					'ref' => img_picto('', 'object_planformation@planformation') . " <a href='section.php?id=@section_id@&plan_id=$pf->rowid'>@val@</a>"
+					'ref' => "<a href='planformation.php?section_id=@section_id@&plan_id=$pf->rowid&action=delete_link'>" . img_picto('', 'delete') . "</a>" . img_picto('', 'object_planformation@planformation') . " <a href='section.php?id=@section_id@&plan_id=$pf->rowid'>@val@</a>"
 			),
 			'hide' => array (
 					'ID',
