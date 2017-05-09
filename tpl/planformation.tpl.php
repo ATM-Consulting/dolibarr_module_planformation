@@ -10,6 +10,10 @@
 		<td>[planformation.title; strconv=no;]</td>
 	</tr>
 	<tr>
+		<td width="20%">[planformation.statut_title; strconv=no;]</td>
+		<td>[planformation.statut; strconv=no;]</td>
+	</tr>
+	<tr>
 		<td width="20%">[planformation.date_start_title; strconv=no;]</td>
 		<td>[planformation.date_start; strconv=no;]</td>
 	</tr>
@@ -27,6 +31,4 @@
 	</tr>
 </table>
 
-<br />
-
-<center>[buttons.buttons; strconv=no;]</center>
+<div class="tabsAction">[buttons.buttons; strconv=no;]</div>

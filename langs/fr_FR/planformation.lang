@@ -32,21 +32,31 @@ PFDictTypeFin=Plan Formation - Type de financement
 # Menu / Button
 #
 PFPlanFormationList=Liste des plans de formation
-PFPlanFormationNew=Nouveau plans de formation
+PFPlanFormationNew=Nouveau plan de formation
 PFPlanFormationEdit=Modifier le plans de formation
 PFPlanFormationCard=Fiche plans de formation
 PFSectionList=Liste des sections
 PFSectionNew=Nouvelle section
 PFSectionEdit=Modifier la section
 PFSectionCard=Fiche section
-PFDeleteConfirm=Etes vous sûr(e) de supprimer ?
-ImpossibleLoadElement=Impossible de trouvé l'éléments
+ImpossibleLoadElement=Impossible de charger le plan de formation
 PFPlanFormationSectionList=Section(s) du plan
 PFSelectSectionToAdd=Ajouter une section au plan
 NotDeletable=Attention !<br> Vous ne pouvez pas supprimer une section liée à un plan de formation...
-ListOfPFSection=Section(s) du plan
+ListOfPFSection=Sections du plan de formation
 HierarchicView=Vue hiérarchique
 NoCategoryYet=Pas encore de catégories
+
+PFPropose=Proposer
+PFRework=Retravailler
+PFAbandon=Abandonner
+PFReopen=Rouvrir
+
+PFProposeConfirm=Êtes-vous sûr(e) de vouloir proposer ce plan de formation ?
+PFReworkConfirm=Êtes-vous sûr(e) de vouloir retravailler ce plan de formation ?
+PFAbandonConfirm=Êtes-vous sûr(e) de vouloir abandonner ce plan de formation ?
+PFReopenConfirm=Êtes-vous sûr(e) de vouloir rouvrir ce plan de formation ?
+PFDeleteConfirm=Etes-vous sûr(e) de vouloir supprimer ce plan de formation ?
 
 #
 # Champs

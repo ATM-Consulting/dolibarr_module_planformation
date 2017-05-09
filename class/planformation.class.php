@@ -38,6 +38,7 @@ class TPlanFormation extends TObjetStd
 		parent::add_champs('budget', array('type'=>'float'));
 		// Jusque là
 		parent::add_champs('fk_user_modification,fk_user_creation,entity', array('type'=>'integer','index'=>true));
+		parent::add_champs('statut', array('type' => 'integer'));
 
 		parent::_init_vars();
 		parent::start();
@@ -101,7 +102,8 @@ class TPlanFormation extends TObjetStd
 				// Ici
 				'budget' => $langs->trans('Budget'),
 				// Jusque là
-				'type_fin_label' => $langs->trans('PFTypeFin')
+				'type_fin_label' => $langs->trans('PFTypeFin'),
+				'statut' => $langs->trans('Status')
 		);
 		if ($mode == 'title') {
 			foreach ( $transarray as $key => $val ) {
@@ -174,6 +176,60 @@ class TPlanFormation extends TObjetStd
 	}
 
 
+	public function propose(&$PDOdb) {
+		if($this->statut == 0) {
+			$this->statut = 1;
+			$this->save($PDOdb);
+
+			return true;
+		}
+
+		return false;
+	}
+	
+	public function rework(&$PDOdb) {
+		if($this->statut == 1) {
+			$this->statut = 0;
+			$this->save($PDOdb);
+			
+			return true;
+		}
+
+		return false;
+	}
+	
+	public function validate(&$PDOdb) {
+		if($this->statut == 1) {
+			$this->statut = 2;
+			$this->save($PDOdb);
+			
+			return true;
+		}
+
+		return false;
+	}
+	
+	public function abandon(&$PDOdb) {
+		if($this->statut != 2) {
+			$this->statut = 3;
+			$this->save($PDOdb);
+			
+			return true;
+		}
+
+		return false;
+	}
+	
+	public function reopen(&$PDOdb) {
+		if($this->statut >= 2) {
+			$this->statut = 0;
+			$this->save($PDOdb);
+
+			return true;
+		}
+
+		return false;
+	}
 
 }
 
@@ -668,7 +724,7 @@ class TSectionPlanFormation extends TObjetStd
 				'fk_planform' => $langs->trans('Planform'),
 				'fk_section' => $langs->trans('Section'),
 				'fk_section_parente' => $langs->trans('Parent'),
-				'budget' => $langs->trans('Budget'),
+				'budget' => $langs->trans('Budget')
 		);
 		if ($mode == 'title') {
 			foreach ( $transarray as $key => $val ) {
