@@ -2,4 +2,4 @@
 .project
 .buildpath
 *.log
-/nbproject/private/
+nbproject/
