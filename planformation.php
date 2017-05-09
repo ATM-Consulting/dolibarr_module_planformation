@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 require_once ('config.php');
+require_once '../../core/lib/treeview.lib.php';
 
 // Security check
 if ($user->societe_id)
@@ -242,8 +243,11 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 	global $db, $langs, $user, $conf;
 
 	dol_include_once('/planformation/lib/planformation.lib.php');
-
-	llxHeader('', $langs->trans("PFPlanFormation"));
+        
+        $arrayofjs = array('/includes/jquery/plugins/jquerytreeview/jquery.treeview.js', '/includes/jquery/plugins/jquerytreeview/lib/jquery.cookie.js');
+        $arrayofcss = array('/includes/jquery/plugins/jquerytreeview/jquery.treeview.css');
+	
+        llxHeader('', $langs->trans("PFPlanFormation"),'','',0,0,$arrayofjs,$arrayofcss);
 	$head = planformation_prepare_head($pf);
 	dol_fiche_head($head, 'planformation', $langs->trans("PFPlanFormationCard"), 0);
 
@@ -301,7 +305,6 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 
 		$buttons = $btCancel . $btSave;
 	} else {
-                //var_dump($_REQUEST);
 		$data['titre'] = load_fiche_titre($langs->trans("PFPlanFormationCard"), '');
 		$data['type_fin_label'] = $typeFin->lines[$pf->fk_type_financement];
 		$data['date_start'] = dol_print_date($pf->date_start);
@@ -331,6 +334,7 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 	$formCore->end();
 
 	if ($mode == 'view') {
+            
 
 		// Combo box to add section on paln form
 		$formCore = new TFormCore($_SERVER['PHP_SELF'], 'formaddSection', 'POST');
@@ -343,6 +347,103 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 		$formCore->end();
 
 		_listPlanFormSection($PDOdb, $pf, $typeFin);
+                
+               /*
+               * TreeView
+               */
+              
+                $obj = new TSectionPlanFormation();
+              $tab = array();
+              $obj->getAllSection($PDOdb, $tab, $pf->id);
+              
+                print load_fiche_titre($langs->trans("ListOfPFSection"). ' ('.$langs->trans("HierarchicView").')', '');
+               
+                /*$data = array(
+                   array(
+                       'rowid'=>0
+                        ,'fk_menu'=>-1
+                        ,'title'=>'racine'
+                   ),
+                   array(
+                    'rowid'=>1
+                    ,'fk_menu'=>2
+                    ,'entry'=>1
+                   ),
+                   array(
+                        'rowid'=>2
+                        ,'entry'=>2
+                    )
+                ,array(
+                        'rowid'=>3
+                        ,'fk_menu'=>2
+                        ,'entry'=>3
+                    )
+                ,array(
+                       'rowid'=>4,
+                       'fk_menu'=>1
+                        ,'entry'=>'<table class="nobordernopadding centpercent"><tr><td>coucou</td>'.
+                    '<td width="50%">salut</td>'.
+                    '<td align="right" width="20px;">lien</td>'.
+                    '</tr></table>'
+                    )
+               );*/
+                $data = array(array(
+                       'rowid'=>0
+                        ,'fk_menu'=>-1
+                        ,'title'=>'racine'
+                   ));
+                foreach($tab as $section) {
+                    $secName = TSectionPlanFormation::getSectionNameById($PDOdb, $section['fk_section']);
+                    $secParenteName = TSectionPlanFormation::getSectionNameById($PDOdb, $section['fk_section_parente']);
+                    
+                    $data[] = array('rowid' => $section['fk_section'],
+                                    (empty($section['fk_section_parente'])) ? '': 'fk_menu'=>$section['fk_section_parente'],
+                                    'entry' => '<table class="nobordernopadding centpercent">
+                                                <tr>
+                                                    <td width="120px">' . img_picto('', 'object_planformation@planformation') . " <a href='section.php?id=". $section['fk_section'] . "&plan_id=$pf->rowid'>" . $section['ref'] . "</a>" . '</td>
+                                                    <td style="text-align: center;" width="160px">'. $secName .'</td>
+                                                    <td width="150px">'. $section['groupe'] .'</td>
+                                                    <td width="150px" style="text-align: center;">'. $secParenteName .'</td>
+                                                    <td width="100px" style="text-align: center;">' . $section['budget'] . '</td>
+                                                    <td align="right" width="20px">'
+                                                        ."<a href='planformation.php?section_id=".$section['fk_section']."&plan_id=$pf->rowid&action=delete_link'>" . img_picto('', 'delete') . "</a>"
+                                                    .'</td>
+                                                </tr>
+                                                </table>'
+                                    );
+                }
+               
+               $nbofentries=(count($data) - 1);
+
+                if ($nbofentries > 0)
+                {
+                        print '<table class="nobordernopadding centpercent">';
+                        print '<tr><th width="140px">Réf.</th><th width="160px">Titre</th><th width="160px">Groupe</th><th width="160px">Parent</th><th width="25px">Budget</th><th align="right" width="80px">Supprimer</th></tr>';
+                        print '</table>';
+                        print '<tr><td colspan="3">';
+                        tree_recur($data,$data[0],0);
+                        print '</td>';
+                        print '<td></td>';
+                        print '</tr>';
+                }
+                else
+                {
+                        print '<tr '.$bc[true].'>';
+                        print '<td colspan="3">';
+                        print '<table class="nobordernopadding"><tr class="nobordernopadding"><td>'.img_picto_common('','treemenu/branchbottom.gif').'</td>';
+                        print '<td valign="middle">';
+                        print $langs->trans("NoCategoryYet");
+                        print '</td>';
+                        print '<td>&nbsp;</td>';
+                        print '</table>';
+                        print '</td>';
+                        print '<td></td>';
+                        print '</tr>';
+                }
+
+                print "</table>";
+
+               
 	}
 }
 
@@ -394,7 +495,8 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 					'nbLine' => $conf->liste_limit
 			),
 			'link' => array (
-					'ref' => "<a href='planformation.php?section_id=@section_id@&plan_id=$pf->rowid&action=delete_link'>" . img_picto('', 'delete') . "</a>" . img_picto('', 'object_planformation@planformation') . " <a href='section.php?id=@section_id@&plan_id=$pf->rowid'>@val@</a>"
+					'ref' => img_picto('', 'object_planformation@planformation') . " <a href='section.php?id=@section_id@&plan_id=$pf->rowid'>@val@</a>",
+                                        'supprimer' => "<a href='planformation.php?section_id=@section_id@&plan_id=$pf->rowid&action=delete_link'>" . img_picto('', 'delete') . "</a>"
 			),
 			'hide' => array (
 					'ID',
@@ -425,5 +527,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 					)
 			),
 			'orderBy' => $TOrder
+                        
+                
 	));
 }

@@ -19,6 +19,12 @@
 		<td>[section.budget; strconv=no;]</td>
 	</tr>
         [onshow;block=end]
+        [onshow;block=begin;when [section.plan_id] != '']
+	<tr>
+		<td width="20%">[section.fk_section_parente_title; strconv=no;]</td>
+		<td>[section.fk_section_parente; strconv=no;]</td>
+	</tr>
+        [onshow;block=end]        
 </table>
 
 <br />

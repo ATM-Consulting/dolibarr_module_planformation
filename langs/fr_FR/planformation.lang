@@ -39,10 +39,14 @@ PFSectionList=Liste des sections
 PFSectionNew=Nouvelle section
 PFSectionEdit=Modifier la section
 PFSectionCard=Fiche section
-PFDeleteConfirm=Etes vous sure de supprimer
+PFDeleteConfirm=Etes vous sûr(e) de supprimer ?
 ImpossibleLoadElement=Impossible de trouvé l'éléments
 PFPlanFormationSectionList=Section(s) du plan
 PFSelectSectionToAdd=Ajouter une section au plan
+NotDeletable=Attention !<br> Vous ne pouvez pas supprimer une section liée à un plan de formation...
+ListOfPFSection=Section(s) du plan
+HierarchicView=Vue hiérarchique
+NoCategoryYet=Pas encore de catégories
 
 #
 # Champs
