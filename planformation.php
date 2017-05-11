@@ -417,55 +417,55 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 				(empty($section['fk_section_parente'])) ? '': 'fk_menu'=>$section['fk_section_parente'],
 				'entry' => '<table class="nobordernopadding centpercent">
 								<tr>
-									<td width="120px">' . img_picto('', 'object_planformation@planformation') . ' <a href="section.php?id='. $section['fk_section'] . '&plan_id=' . $pf->rowid . '">' . $section['ref'] . '</a></td>
-									<td style="text-align: center;" width="160px">'. $secName .'</td>
-									<td width="150px">'. $section['groupe'] .'</td>
-									<td width="150px" style="text-align: center;">'. $secParenteName .'</td>
-									<td width="100px" style="text-align: center;">' . price($section['budget'], 1, $langs, 1, -1, -1, 'auto') . '</td>
-									<td align="right" width="20px">
+									<td>' . img_picto('', 'object_planformation@planformation') . ' <a href="section.php?id='. $section['fk_section'] . '&plan_id=' . $pf->rowid . '"><b>' . $section['ref'] . '</b></a></td>
+									<td width="300px">'. $secName .'</td>
+									<td width="200px">'. $section['groupe'] .'</td>
+									<td width="100px">' . price($section['budget'], 1, $langs, 1, -1, -1, 'auto') . '</td>
+									<td align="right" width="200px">
 										<a href="planformation.php?id=' . $pf->id . '&action=delete_link&section_id=' . $section['fk_section'] . '">' . img_picto('', 'delete') . '</a>
 									</td>
 								</tr>
 							</table>'
 		);
 	}
-	
+
+
+	print '<table class="liste centpercent">';
+	print '<tr class="liste_titre">';
+	print '<th class="liste_titre">Réf.</th><th class="liste_titre" width="300px">Titre</th><th class="liste_titre" width="200px">Groupe</th><th class="liste_titre" width="100px">Budget</th><th class="liste_titre" align="right" width="200px">Actions</th>';
+	print '</tr>';
+
 	$nbofentries = (count($data) - 1);
 
 	if($nbofentries > 0) {
-		print '<table class="nobordernopadding centpercent">';
-		print '<tr><th width="140px">Réf.</th><th width="160px">Titre</th><th width="160px">Groupe</th><th width="160px">Parent</th><th width="25px">Budget</th><th align="right" width="80px">Supprimer</th></tr>';
-		print '</table>';
-		print '<tr><td colspan="3">';
-		tree_recur($data, $data [0], 0);
+		print '<tr class="impair"><td colspan="5">';
+		tree_recur($data, $data[0], 0);
 		print '</td>';
-		print '<td></td>';
 		print '</tr>';
 	} else {
-		print '<tr ' . $bc [true] . '>';
-		print '<td colspan="3">';
-		print '<table class="nobordernopadding"><tr class="nobordernopadding"><td>' . img_picto_common ( '', 'treemenu/branchbottom.gif' ) . '</td>';
-		print '<td valign="middle">';
+		print '<tr class="impair">';
+		print '<td colspan="5" align="center">';
 		print $langs->trans("NoCategoryYet");
 		print '</td>';
-		print '<td>&nbsp;</td>';
-		print '</table>';
-		print '</td>';
-		print '<td></td>';
 		print '</tr>';
 	}
+
+
+	// Ajout nouvelle section
+
 	
-	print "</table>";
+	$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formaddSection', 'POST');
 
-
-	// Combo box to add section on paln form
-	$formCore = new TFormCore($_SERVER['PHP_SELF'], 'formaddSection', 'POST');
-	echo $formCore->hidden('action', 'addsection');
-	echo $formCore->hidden('id', $pf->getId());
 	$pfs = new TSection();
 	$availableSection = $pfs->getAvailableSection($PDOdb, $pf->getId());
-	echo $formCore->combo($langs->trans('PFSelectSectionToAdd'), 'fk_section', $availableSection, '');
-	echo $formCore->btsubmit($langs->trans('Add'), 'addsection');
+
+	print '<tr class="impair">';
+	print '<td>' . $formCore->hidden('action', 'addsection') . $formCore->combo($langs->trans('PFSelectSectionToAdd'), 'fk_section', $availableSection, '') . '</td>';
+	print '<td colspan="3"></td>';
+	print '<td align="right">'. $formCore->btsubmit($langs->trans('Add'), 'addsection') . '</td></tr>';
+
 	$formCore->end();
+
+	print "</table>";
 }
 
