@@ -453,15 +453,29 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 
 	// Ajout nouvelle section
 
-	
 	$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formaddSection', 'POST');
 
 	$pfs = new TSection();
 	$availableSection = $pfs->getAvailableSection($PDOdb, $pf->getId());
 
+	$sectionsKeyVal = array();
+
+	foreach($pf->TSectionPlanFormation as $sectionPF) {
+		$section = new TSection();
+		$section->load($PDOdb, $sectionPF->fk_section);
+
+		$sectionsKeyVal[$sectionPF->id] = $section->title;
+	}
+
+	print '<tr class="liste_titre"><td colspan="5">' . $langs->trans('Ajout d\'une nouvelle section') . '</td></tr>';
+	print '<tr class="liste_titre">';
+	print '<th class="liste_titre">Réf.</th><th class="liste_titre" colspan="2">Section-mère</th><th class="liste_titre">Budget</th><th class="liste_titre" align="right" width="200px">&nbsp;</th>';
+	print '</tr>';
+
 	print '<tr class="impair">';
-	print '<td>' . $formCore->hidden('action', 'addsection') . $formCore->combo($langs->trans('PFSelectSectionToAdd'), 'fk_section', $availableSection, '') . '</td>';
-	print '<td colspan="3"></td>';
+	print '<td>' . $formCore->hidden('action', 'addsection') . $formCore->combo('', 'fk_section', $availableSection, '') . '</td>';
+	print '<td colspan="2">' . $formCore->combo('', 'fk_section', $sectionsKeyVal, ''). '</td>';
+	print '<td>' . 'BLBL' . '</td>';
 	print '<td align="right">'. $formCore->btsubmit($langs->trans('Add'), 'addsection') . '</td></tr>';
 
 	$formCore->end();
