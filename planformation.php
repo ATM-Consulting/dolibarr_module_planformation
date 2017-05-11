@@ -88,15 +88,18 @@ switch ($action) {
 	break;
 
 	case 'delete_link':
-		$sectionId = GETPORT('section_id', 'int');
-		if(! empty($sectionid)) {
-			$link_pfs = new TSectionPlanFormation ();
-			$link_pfs->loadByCustom ($PDOdb, array (
-				'fk_planform' => $rf->rowid,
+		$sectionId = GETPOST('section_id', 'int');
+
+		if(! empty($sectionId)) {
+			$link_pfs = new TSectionPlanFormation();
+			$link_pfs->loadByCustom ($PDOdb, array(
+				'fk_planform' => $pf->rowid,
 				'fk_section' => $sectionId
 			));
 
 			$link_pfs->delete($PDOdb);
+		} else {
+			// TODO setEventMessage
 		}
 
 		_card($PDOdb, $pf, $typeFin, 'view');
@@ -414,13 +417,13 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 				(empty($section['fk_section_parente'])) ? '': 'fk_menu'=>$section['fk_section_parente'],
 				'entry' => '<table class="nobordernopadding centpercent">
 								<tr>
-									<td width="120px">' . img_picto('', 'object_planformation@planformation') . " <a href='section.php?id=". $section['fk_section'] . "&plan_id=$pf->rowid'>" . $section['ref'] . "</a>" . '</td>
+									<td width="120px">' . img_picto('', 'object_planformation@planformation') . ' <a href="section.php?id='. $section['fk_section'] . '&plan_id=' . $pf->rowid . '">' . $section['ref'] . '</a></td>
 									<td style="text-align: center;" width="160px">'. $secName .'</td>
 									<td width="150px">'. $section['groupe'] .'</td>
 									<td width="150px" style="text-align: center;">'. $secParenteName .'</td>
 									<td width="100px" style="text-align: center;">' . price($section['budget'], 1, $langs, 1, -1, -1, 'auto') . '</td>
 									<td align="right" width="20px">
-										<a href="planformation.php?section_id='.$section['fk_section'].'&plan_id=$pf->rowid&action=delete_link">' . img_picto('', 'delete') . '</a>
+										<a href="planformation.php?id=' . $pf->id . '&action=delete_link&section_id=' . $section['fk_section'] . '">' . img_picto('', 'delete') . '</a>
 									</td>
 								</tr>
 							</table>'
