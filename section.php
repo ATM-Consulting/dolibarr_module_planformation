@@ -38,6 +38,8 @@ $sectionP = new TSectionPlanFormation();
 $typeFin = new TTypeFinancement();
 
 $action = GETPOST('action');
+$id = GETPOST('id', 'int');
+
 
 // Pour que le bouton "Annuler" de la fiche d'un dossier annule et ne sauvegarde pas...
 if (isset($_REQUEST['cancel']) && $_REQUEST['cancel'] == "Annuler") {
@@ -54,7 +56,10 @@ if (! empty($action)) {
 			break;
 		case 'add' :
 		case 'new' :
+			$action = 'new';
+
 			$pfs->set_values($_REQUEST);
+
 			_card($PDOdb, $pfs, 'edit');
 
 			break;
@@ -203,7 +208,7 @@ function _info(TPDOdb &$PDOdb, TSection &$pfs) {
  * @param string $mode
  */
 function _card(TPDOdb &$PDOdb, TSection &$pfs, $mode = '') {
-	global $db, $langs, $user, $conf;
+	global $db, $langs, $user, $conf, $action;
 
 	dol_include_once('/planformation/lib/planformation.lib.php');
 
@@ -271,17 +276,23 @@ function _card(TPDOdb &$PDOdb, TSection &$pfs, $mode = '') {
                     $availableSection = $planformSection->getAvailableParentSection($PDOdb);
                 
                 $data['fk_section_parente'] = $formCore->combo("", 'fk_section_parente', $availableSection, $planformSection->fk_section_parente);
-                
-		if ($conf->global->PF_SECTION_ADDON == 'mod_planformation_section_universal') {
-			$data['ref'] = $formCore->texte('', 'ref', $pfs->ref, 15, 255);
-		} elseif ($conf->global->PF_SECTION_ADDON == 'mod_planformation_section_simple') {
-			$result = $pfs->getNextNumRef();
-			if ($result == - 1) {
-				setEventMessages(null, $pf->errors, 'errors');
+
+
+        if($action == 'new') {
+			if ($conf->global->PF_SECTION_ADDON == 'mod_planformation_section_universal') {
+				$data['ref'] = $formCore->texte('', 'ref', $pfs->ref, 15, 255);
+			} elseif ($conf->global->PF_SECTION_ADDON == 'mod_planformation_section_simple') {
+				$result = $pfs->getNextNumRef();
+				if ($result == - 1) {
+					setEventMessages(null, $pf->errors, 'errors');
+				}
+				$data['ref'] = $result;
+				echo $formCore->hidden('ref', $result);
 			}
-			$data['ref'] = $result;
-			echo $formCore->hidden('ref', $result);
-		}
+        } else {
+        	$data['ref'] = $pfs->ref;
+        }
+
 		$data['fk_usergroup'] = $formCore->combo('', 'fk_usergroup', $usergroupsArray, empty($pfs->fk_usergroup)?'':$pfs->fk_usergroup);
 
 		$buttons = $btCancel . $btSave;

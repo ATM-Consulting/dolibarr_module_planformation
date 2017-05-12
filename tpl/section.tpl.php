@@ -27,6 +27,4 @@
         [onshow;block=end]        
 </table>
 
-<br />
-
-<center>[buttons.buttons; strconv=no;]</center>
+<div class="tabsAction">[buttons.buttons; strconv=no;]</div>
