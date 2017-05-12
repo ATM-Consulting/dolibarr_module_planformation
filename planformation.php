@@ -431,6 +431,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 									<td width="200px">'. $section['groupe'] .'</td>
 									<td width="100px">' . price($section['budget'], 1, $langs, 1, -1, -1, 'auto') . '</td>
 									<td align="right" width="200px">
+										<a href="section.php?id=' . $section['rowid'] . '&plan_id=' . $pf->id . '&action=edit">' . img_picto('', 'edit') . '</a>
 										<a href="planformation.php?id=' . $pf->id . '&action=delete_link&section_id=' . $section['fk_section'] . '">' . img_picto('', 'delete') . '</a>
 									</td>
 								</tr>
@@ -476,7 +477,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 		$sectionsKeyVal[$sectionPF->id] = $section->title;
 	}
 
-	print '<tr class="liste_titre"><td colspan="5">' . $langs->trans('Ajout d\'une nouvelle section') . '</td></tr>';
+	print '<tr class="liste_titre"><td colspan="5">' . $langs->trans('AddNewPFSection') . '</td></tr>';
 	print '<tr class="liste_titre">';
 	print '<th class="liste_titre">Ref.</th><th class="liste_titre" colspan="2">Section-mère</th><th class="liste_titre">Budget</th><th class="liste_titre" align="right" width="200px">&nbsp;</th>';
 	print '</tr>';

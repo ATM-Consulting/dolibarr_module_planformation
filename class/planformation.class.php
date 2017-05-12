@@ -618,7 +618,7 @@ class TSectionPlanFormation extends TObjetStd
                     $fkSectionPF = $PDOdb->Get_field('rowid');
 
 					$TRes[] = array(
-						'rowid' => $PDOdb->Get_field('fk_section')
+						'rowid' => $PDOdb->Get_field('rowid')
 						,'fk_planform' => $fkPlanform
 						,'fk_section' => $PDOdb->Get_field('fk_section')
 						,'ref' => $PDOdb->Get_field('ref')

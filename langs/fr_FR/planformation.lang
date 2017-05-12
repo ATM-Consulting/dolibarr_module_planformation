@@ -49,6 +49,7 @@ NoCategoryYet=Pas encore de catégories
 NoSectionsInPF=Ce plan de formation n'a pas de section
 PFMotherSection=Section-mère
 PFNoMotherSection=Pas de section-mère
+AddNewPFSection=Ajout d'une nouvelle section
 
 PFPropose=Proposer
 PFRework=Retravailler
