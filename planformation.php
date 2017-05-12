@@ -280,8 +280,9 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 	$head = planformation_prepare_head($pf);
 	dol_fiche_head($head, 'planformation', $langs->trans('PFPlanFormation'), 0);
 
-	$formDoli = new Form($db);
-	$formCore = new TFormCore($_SERVER['PHP_SELF'], 'formscore', 'POST');
+
+	$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formscore', 'POST');
+
 	$formCore->Set_typeaff($mode);
         
 	if ($pf->getId() <= 0) {
@@ -294,7 +295,7 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 	$TBS = new TTemplateTBS();
 
 
-	$btSave = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] .'?id='. $pf->rowid .'&action=save">' . $langs->trans('Save') . '</a>';
+	$btSave = '<button type="submit" class="butAction">' . $langs->trans('Save') . '</button>';
 	$btCancel = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] .'?id='. $pf->rowid .'">' . $langs->trans('Cancel') . '</a>'; //$formCore->btsubmit($langs->trans('Valid'), 'save');
 
 	$btRetour = '<a class="butAction" href="' . dol_buildpath("/planformation/planformation.php?action=list", 1) . '">' . $langs->trans('BackToList') . '</a>';
@@ -355,6 +356,7 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 				setEventMessages(null, $pf->errors, 'errors');
 			}
 			$data['ref'] = $result;
+			echo $formCore->hidden('action', 'save');
 			echo $formCore->hidden('ref', $result);
 		}
 
