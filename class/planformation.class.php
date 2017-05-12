@@ -569,28 +569,32 @@ class TSectionPlanFormation extends TObjetStd
             }
         }
         
-        public function getSectionsFilles(&$TSectionEnfantes, $fkPlanform, $fkSection) {
+        public function getSectionsFilles(&$TSectionEnfantes, $fkPlanform, $fkSectionPF) {
             
             $PDOdb = new TPDOdb;
-            $sql = 'SELECT fk_planform, fk_section, fk_section_parente , budget, ref, nom
+            $sql = 'SELECT pps.rowid, fk_section, fk_section_parente , pps.budget, ref, nom
                     FROM '.MAIN_DB_PREFIX.'planform_planform_section as pps
                     INNER JOIN '.MAIN_DB_PREFIX.'planform_section as ps ON pps.fk_section=ps.rowid
                     INNER JOIN '.MAIN_DB_PREFIX.'usergroup as ug ON ps.fk_usergroup=ug.rowid
-                    WHERE fk_section_parente='.$fkSection
+                    WHERE fk_section_parente='.$fkSectionPF
                     .' AND fk_planform='.$fkPlanform;
             
             $result = $PDOdb->Execute($sql);
             if ($result !== false) {
                 while ( $PDOdb->Get_line() ) {
-                    $fkSectionFille=$PDOdb->Get_field('fk_section');
+                    $fkSectionPFFille = $PDOdb->Get_field('rowid');
                     
-                    $TSectionEnfantes[] = array('fk_planform' => $PDOdb->Get_field('fk_planform'),
-                                                'fk_section' => $fkSectionFille,
-                                                'ref' => $PDOdb->Get_field('ref'),
-                                                'groupe' => $PDOdb->Get_field('nom'),
-                                                'budget' => $PDOdb->Get_field('budget'),
-                                                'fk_section_parente' => $PDOdb->Get_field('fk_section_parente'));
-                    $this->getSectionsFilles($TSectionEnfantes, $fkPlanform, $fkSectionFille);
+                    $TSectionEnfantes[] = array(
+						'rowid' => $PDOdb->Get_field('fk_section')
+						,'fk_planform' => $fkPlanform
+						,'fk_section' => $PDOdb->Get_field('fk_section')
+						,'ref' => $PDOdb->Get_field('ref')
+						,'groupe' => $PDOdb->Get_field('nom')
+						,'budget' => $PDOdb->Get_field('budget')
+						,'fk_section_parente' => $fkSectionPF
+                    );
+
+                    $this->getSectionsFilles($TSectionEnfantes, $fkPlanform, $fkSectionPFFille);
                 }
             }
         }
@@ -601,7 +605,7 @@ class TSectionPlanFormation extends TObjetStd
          */
         public function getAllSection(&$PDOdb, &$TRes, $fkPlanform) {
             
-            $sql = 'SELECT fk_planform, fk_section, fk_section_parente, budget, ref, nom
+            $sql = 'SELECT pps.rowid, fk_section, fk_section_parente, pps.budget, ref, nom
                     FROM '.MAIN_DB_PREFIX.'planform_planform_section as pps
                     INNER JOIN '.MAIN_DB_PREFIX.'planform_section as ps ON pps.fk_section=ps.rowid
                     INNER JOIN '.MAIN_DB_PREFIX.'usergroup as ug ON ps.fk_usergroup=ug.rowid
@@ -611,16 +615,19 @@ class TSectionPlanFormation extends TObjetStd
             $result = $PDOdb->Execute($sql);
             if ($result !== false) {
                 while ( $PDOdb->Get_line() ) {
-                    $fkSection = $PDOdb->Get_field('fk_section');
-                    
-                    $TRes[] = array(
-                                'fk_planform' => $PDOdb->Get_field('fk_planform'),
-                                'fk_section' => $fkSection,
-                                'ref' => $PDOdb->Get_field('ref'),
-                                'groupe' => $PDOdb->Get_field('nom'),
-                                'budget' => $PDOdb->Get_field('budget'),
-                                'fk_section_parente' => $PDOdb->Get_field('fk_section_parente'));
-                    $this->getSectionsFilles($TRes, $fkPlanform, $fkSection);
+                    $fkSectionPF = $PDOdb->Get_field('rowid');
+
+					$TRes[] = array(
+						'rowid' => $PDOdb->Get_field('fk_section')
+						,'fk_planform' => $fkPlanform
+						,'fk_section' => $PDOdb->Get_field('fk_section')
+						,'ref' => $PDOdb->Get_field('ref')
+						,'groupe' => $PDOdb->Get_field('nom')
+						,'budget' => $PDOdb->Get_field('budget')
+						,'fk_section_parente' => '0'
+					);
+
+                    $this->getSectionsFilles($TRes, $fkPlanform, $fkSectionPF);
                 }
             }
             

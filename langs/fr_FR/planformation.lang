@@ -46,6 +46,9 @@ NotDeletable=Attention !<br> Vous ne pouvez pas supprimer une section liée à u
 ListOfPFSection=Sections du plan de formation
 HierarchicView=Vue hiérarchique
 NoCategoryYet=Pas encore de catégories
+NoSectionsInPF=Ce plan de formation n'a pas de section
+PFMotherSection=Section-mère
+PFNoMotherSection=Pas de section-mère
 
 PFPropose=Proposer
 PFRework=Retravailler

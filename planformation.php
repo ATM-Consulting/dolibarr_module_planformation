@@ -82,9 +82,12 @@ switch ($action) {
 		$pfs_link = new TSectionPlanFormation();
 		$pfs_link->fk_planform = $pf->getId();
 		$pfs_link->fk_section = GETPOST('fk_section', 'int');
-			
+		$pfs_link->fk_section_parente = GETPOST('fk_section_mere', 'int');
+		$pfs_link->budget = GETPOST('budget', 'int');
+
 		$pfs_link->save($PDOdb);
-		_card($PDOdb, $pf, $typeFin, 'view');
+		header('Location: '.$_SERVER['PHP_SELF'] . '?id=' . $pf->id);
+		exit;
 	break;
 
 	case 'delete_link':
@@ -98,9 +101,12 @@ switch ($action) {
 			));
 
 			$link_pfs->delete($PDOdb);
-		} else {
-			// TODO setEventMessage
+
+			header('Location: '.$_SERVER['PHP_SELF'] . '?id=' . $pf->id);
+			exit;
 		}
+
+		// TODO setEventMessage
 
 		_card($PDOdb, $pf, $typeFin, 'view');
 	break;
@@ -399,7 +405,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 	$obj = new TSectionPlanFormation();
 	$tab = array();
 	$obj->getAllSection($PDOdb, $tab, $pf->id);
-	
+
 	print load_fiche_titre($langs->trans("ListOfPFSection"). ' ('.$langs->trans("HierarchicView").')', '');
 	
 
@@ -413,9 +419,10 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 		$secName = TSectionPlanFormation::getSectionNameById($PDOdb, $section['fk_section']);
 		$secParenteName = TSectionPlanFormation::getSectionNameById($PDOdb, $section['fk_section_parente']);
 		
-		$data[] = array('rowid' => $section['fk_section'],
-				(empty($section['fk_section_parente'])) ? '': 'fk_menu'=>$section['fk_section_parente'],
-				'entry' => '<table class="nobordernopadding centpercent">
+		$data[] = array(
+				'rowid' => $section['rowid']
+				,'fk_menu'=> $section['fk_section_parente']
+				,'entry' => '<table class="nobordernopadding centpercent">
 								<tr>
 									<td>' . img_picto('', 'object_planformation@planformation') . ' <a href="section.php?id='. $section['fk_section'] . '&plan_id=' . $pf->rowid . '"><b>' . $section['ref'] . '</b></a></td>
 									<td width="300px">'. $secName .'</td>
@@ -445,7 +452,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 	} else {
 		print '<tr class="impair">';
 		print '<td colspan="5" align="center">';
-		print $langs->trans("NoCategoryYet");
+		print $langs->trans('NoSectionsInPF');
 		print '</td>';
 		print '</tr>';
 	}
@@ -458,24 +465,24 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 	$pfs = new TSection();
 	$availableSection = $pfs->getAvailableSection($PDOdb, $pf->getId());
 
-	$sectionsKeyVal = array();
+	$sectionsKeyVal = array('0' => $langs->trans('PFNoMotherSection'));
 
 	foreach($pf->TSectionPlanFormation as $sectionPF) {
 		$section = new TSection();
-		$section->load($PDOdb, $sectionPF->fk_section);
+		$section->load($PDOdb, $sectionPF->rowid);
 
 		$sectionsKeyVal[$sectionPF->id] = $section->title;
 	}
 
 	print '<tr class="liste_titre"><td colspan="5">' . $langs->trans('Ajout d\'une nouvelle section') . '</td></tr>';
 	print '<tr class="liste_titre">';
-	print '<th class="liste_titre">Réf.</th><th class="liste_titre" colspan="2">Section-mère</th><th class="liste_titre">Budget</th><th class="liste_titre" align="right" width="200px">&nbsp;</th>';
+	print '<th class="liste_titre">Ref.</th><th class="liste_titre" colspan="2">Section-mère</th><th class="liste_titre">Budget</th><th class="liste_titre" align="right" width="200px">&nbsp;</th>';
 	print '</tr>';
 
 	print '<tr class="impair">';
 	print '<td>' . $formCore->hidden('action', 'addsection') . $formCore->combo('', 'fk_section', $availableSection, '') . '</td>';
-	print '<td colspan="2">' . $formCore->combo('', 'fk_section', $sectionsKeyVal, ''). '</td>';
-	print '<td>' . 'BLBL' . '</td>';
+	print '<td colspan="2">' . $formCore->combo('', 'fk_section_mere', $sectionsKeyVal, '0', 1, '', ' style="min-width:150px"'). '</td>';
+	print '<td>' . $formCore->texte('', 'budget', '', 20, 20, ' style="width:80px"') . '</td>';
 	print '<td align="right">'. $formCore->btsubmit($langs->trans('Add'), 'addsection') . '</td></tr>';
 
 	$formCore->end();
