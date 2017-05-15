@@ -51,6 +51,7 @@ PFMotherSection=Section-mère
 PFNoMotherSection=Pas de section-mère
 AddNewPFSection=Ajout d'une nouvelle section
 PFBudgetOverflow=Impossible d'ajouter cette section : cela provoquerait un dépassement de budget pour la section-mère.
+ThisPFContainsAllExistingSections=Ce plan de formation contient toutes les sections existantes.
 
 PFPropose=Proposer
 PFRework=Retravailler

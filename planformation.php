@@ -478,32 +478,39 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 
 	// Ajout nouvelle section
 
-	$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formaddSection', 'POST');
+	
+	print '<tr class="liste_titre"><td colspan="5">' . $langs->trans('AddNewPFSection') . '</td></tr>';
 
 	$pfs = new TSection();
-	$availableSection = $pfs->getAvailableSection($PDOdb, $pf->getId());
+	$TAvailableSection = $pfs->getAvailableSection($PDOdb, $pf->getId());
 
-	$sectionsKeyVal = array('0' => $langs->trans('PFNoMotherSection'));
+	if(! empty($TAvailableSection)) {
 
-	foreach($pf->TSectionPlanFormation as $sectionPF) {
-		$section = new TSection();
-		$section->load($PDOdb, $sectionPF->fk_section);
+		$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formaddSection', 'POST');
+	
+		$sectionsKeyVal = array('0' => $langs->trans('PFNoMotherSection'));
+	
+		foreach($pf->TSectionPlanFormation as $sectionPF) {
+			$section = new TSection();
+			$section->load($PDOdb, $sectionPF->fk_section);
+	
+			$sectionsKeyVal[$sectionPF->id] = $section->title;
+		}
+		
+		print '<tr class="liste_titre">';
+		print '<th class="liste_titre">Ref.</th><th class="liste_titre" colspan="2">Section-mère</th><th class="liste_titre">Budget</th><th class="liste_titre" align="right" width="200px">&nbsp;</th>';
+		print '</tr>';
 
-		$sectionsKeyVal[$sectionPF->id] = $section->title;
+		print '<tr class="impair">';
+		print '<td>' . $formCore->hidden('action', 'addsection') . $formCore->combo('', 'fk_section', $TAvailableSection, '') . '</td>';
+		print '<td colspan="2">' . $formCore->combo('', 'fk_section_mere', $sectionsKeyVal, '0', 1, '', ' style="min-width:150px"'). '</td>';
+		print '<td>' . $formCore->texte('', 'budget', '', 20, 20, ' style="width:80px"') . '</td>';
+		print '<td align="right">'. $formCore->btsubmit($langs->trans('Add'), 'addsection') . '</td></tr>';
+	
+		$formCore->end();
+	} else {
+		print '<tr class="impair"><td colspan="5" align="center">' . $langs->trans('ThisPFContainsAllExistingSections') . '</td></tr>';
 	}
-
-	print '<tr class="liste_titre"><td colspan="5">' . $langs->trans('AddNewPFSection') . '</td></tr>';
-	print '<tr class="liste_titre">';
-	print '<th class="liste_titre">Ref.</th><th class="liste_titre" colspan="2">Section-mère</th><th class="liste_titre">Budget</th><th class="liste_titre" align="right" width="200px">&nbsp;</th>';
-	print '</tr>';
-
-	print '<tr class="impair">';
-	print '<td>' . $formCore->hidden('action', 'addsection') . $formCore->combo('', 'fk_section', $availableSection, '') . '</td>';
-	print '<td colspan="2">' . $formCore->combo('', 'fk_section_mere', $sectionsKeyVal, '0', 1, '', ' style="min-width:150px"'). '</td>';
-	print '<td>' . $formCore->texte('', 'budget', '', 20, 20, ' style="width:80px"') . '</td>';
-	print '<td align="right">'. $formCore->btsubmit($langs->trans('Add'), 'addsection') . '</td></tr>';
-
-	$formCore->end();
 
 	print "</table>";
 }
