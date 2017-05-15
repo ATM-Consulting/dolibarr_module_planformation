@@ -85,7 +85,22 @@ switch ($action) {
 		$pfs_link->fk_section_parente = GETPOST('fk_section_mere', 'int');
 		$pfs_link->budget = GETPOST('budget', 'int');
 
-		$pfs_link->save($PDOdb);
+		if(! empty($pfs_link->fk_section_parente)) {
+			$sectionParente = new TSectionPlanFormation();
+			$sectionParente->load($PDOdb, $pfs_link->fk_section_parente);
+
+			$budgetRestant = $sectionParente->getRemainingBudget($PDOdb);
+
+		} else {
+			$budgetRestant = $pf->getRemainingBudget($PDOdb);
+		}
+
+		if($budgetRestant >= $pfs_link->budget) {
+			$pfs_link->save($PDOdb);
+		} else {
+			setEventMessage('PFBudgetOverflow', 'errors');
+		}
+
 		header('Location: '.$_SERVER['PHP_SELF'] . '?id=' . $pf->id);
 		exit;
 	break;

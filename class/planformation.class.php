@@ -230,7 +230,21 @@ class TPlanFormation extends TObjetStd
 
 		return false;
 	}
+	
+	public function getRemainingBudget(&$PDOdb) {
 
+		$spf = new TSectionPlanFormation();
+		$TSectionsFilles = array();
+		$spf->getSectionsFilles($TSectionsFilles, $this->id, 0, false);
+		
+		$budgetFilles = 0;
+
+		foreach($TSectionsFilles as $sectionFille) {
+			$budgetFilles += $sectionFille['budget'];
+		}
+
+		return ($this->budget - $budgetFilles);
+	}
 }
 
 /**
@@ -512,6 +526,20 @@ class TSectionPlanFormation extends TObjetStd
             return $pfsLinkParente->budget - ($sommeBudget + $newBudget);
         }
         
+        public function getRemainingBudget(&$PDOdb) {
+
+        	$TSectionsFilles = array();
+        	$this->getSectionsFilles($TSectionsFilles, $this->fk_planform, $this->id, false);
+        	
+        	$budgetFilles = 0;
+        	
+        	foreach($TSectionsFilles as $sectionFille) {
+        		$budgetFilles += $sectionFille['budget'];
+        	}
+
+        	return ($this->budget - $budgetFilles);
+        }
+        
         
         public function getAvailableParentSection(TPDOdb &$PDOdb) {
             // Récupération de toutes les sections du plan de formation
@@ -569,7 +597,7 @@ class TSectionPlanFormation extends TObjetStd
             }
         }
         
-        public function getSectionsFilles(&$TSectionEnfantes, $fkPlanform, $fkSectionPF) {
+        public function getSectionsFilles(&$TSectionEnfantes, $fkPlanform, $fkSectionPF, $recur = true) {
             
             $PDOdb = new TPDOdb;
             $sql = 'SELECT pps.rowid, fk_section, fk_section_parente , pps.budget, ref, nom
@@ -594,7 +622,9 @@ class TSectionPlanFormation extends TObjetStd
 						,'fk_section_parente' => $fkSectionPF
                     );
 
-                    $this->getSectionsFilles($TSectionEnfantes, $fkPlanform, $fkSectionPFFille);
+                    if($recur) {
+                    	$this->getSectionsFilles($TSectionEnfantes, $fkPlanform, $fkSectionPFFille);
+                    }
                 }
             }
         }
