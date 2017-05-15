@@ -487,7 +487,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 
 	foreach($pf->TSectionPlanFormation as $sectionPF) {
 		$section = new TSection();
-		$section->load($PDOdb, $sectionPF->rowid);
+		$section->load($PDOdb, $sectionPF->fk_section);
 
 		$sectionsKeyVal[$sectionPF->id] = $section->title;
 	}
