@@ -192,7 +192,7 @@ function _list(TPDOdb &$PDOdb, TPlanFormation &$pf) {
 				$_REQUEST['orderUp'] => 'ASC'
 		);
 
-	$formCore = new TFormCore($_SERVER['PHP_SELF'], 'formscore', 'POST');
+	$formCore = new TFormCore($_SERVER['PHP_SELF'], 'formscore', 'GET');
 
 	echo $r->render($PDOdb, $pf->getSQLFetchAll(), array (
 			'limit' => array (
@@ -201,6 +201,7 @@ function _list(TPDOdb &$PDOdb, TPlanFormation &$pf) {
 			),
 			'link' => array (
 					'ref' => img_picto('', 'object_planformation@planformation') . ' <a href="?id=@ID@">@val@</a>'
+					, 'opca' => img_picto('', 'object_company') . ' <a href="'. dol_buildpath('/societe.php', 1).'?id=@fk_opca@">@val@</a>'
 			),
 			'type' => array (
 					'date_start' => 'date',
@@ -212,7 +213,12 @@ function _list(TPDOdb &$PDOdb, TPlanFormation &$pf) {
 					'type_fin_code',
 					'fk_user_modification',
 					'fk_user_creation',
-					'entity'
+					'entity',
+					'fk_opca',
+					'budget_finance_accepte',
+					'budget_finance_reel',
+					'type_fin_label'
+					
 			),
 			'title' => $pf->getTrans(),
 			'liste' => array (
@@ -236,6 +242,11 @@ function _list(TPDOdb &$PDOdb, TPlanFormation &$pf) {
 					'ref' => array (
 							'recherche' => true,
 							'table' => 'planform'
+					),
+					'opca' => array (
+							'recherche' => true,
+							'table' => 'soc',
+							'field' => 'nom'
 					)
 			),
 			'orderBy' => $TOrder
@@ -298,6 +309,7 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 
 	$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formscore', 'POST');
 
+
 	$formCore->Set_typeaff($mode);
         
 	if ($pf->getId() <= 0) {
@@ -353,14 +365,27 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 		break;
 	}
 
+
+
 	if ($mode == 'edit') {
+		
+		dol_include_once('/core/class/html.form.class.php');
+		
+		$form = new Form($db);
+
 		$data['titre'] = load_fiche_titre($pf->getId() > 0 ? $langs->trans("PFPlanFormationEdit") : $langs->trans("PFPlanFormationNew"), '');
 		$data['title'] = $formCore->texte('', 'title', $pf->title, 30, 255);
 		$data['type_fin_label'] = $formCore->combo('', 'fk_type_financement', $typeFin->lines, '');
 		$data['date_start'] = $formCore->doliCalendar('date_start', $pf->date_start);
 		$data['date_end'] = $formCore->doliCalendar('date_end', $pf->date_end);
+
+		$data['opca'] = $form->select_company($pf->fk_opca, 'fk_opca', 's.fournisseur = 1');
 		// Ici
-		$data['budget'] = $formCore->texte('', 'budget', $pf->budget, 30, 255);
+		$data['budget_previsionnel'] = $formCore->texte('', 'budget_previsionnel', $pf->budget_previsionnel, 30, 255);
+		$data['budget_finance_reel'] = price($pf->budget_finance_reel, 1, $langs, 1, -1, -1, 'auto');
+		$data['budget_finance_accepte'] = price($pf->budget_finance_accepte, 1, $langs, 1, -1, -1, 'auto');
+		$data['budget_finance_reel'] = price($pf->budget_finance_reel, 1, $langs, 1, -1, -1, 'auto');
+		$data['budget_consomme'] = price($pf->budget_consomme, 1, $langs, 1, -1, -1, 'auto');
 		// Jusque là
 
 		if ($conf->global->PF_ADDON == 'mod_planformation_universal') {
@@ -383,8 +408,20 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 		$data['date_end'] = dol_print_date($pf->date_end);
 		$data['title'] = $pf->title;
 
+		$opca = new Societe($db);
+		
+		if(! empty($pf->fk_opca)) {
+			$opca->fetch($pf->fk_opca);
+			$data['opca'] = $opca->getNomUrl(1);
+		} else {
+			$data['opca'] = $langs->trans('PFNoOPCASelected');
+		}
+
 		// Ici
-		$data['budget'] = price($pf->budget, 1, $langs, 1, -1, -1, 'auto');
+		$data['budget_previsionnel'] = price($pf->budget_previsionnel, 1, $langs, 1, -1, -1, 'auto');
+		$data['budget_finance_accepte'] = price($pf->budget_finance_accepte, 1, $langs, 1, -1, -1, 'auto');
+		$data['budget_finance_reel'] = price($pf->budget_finance_reel, 1, $langs, 1, -1, -1, 'auto');
+		$data['budget_consomme'] = price($pf->budget_consomme, 1, $langs, 1, -1, -1, 'auto');
 		// Jusque là
 		$data['ref'] = $formCore->texte('', 'ref', $pf->ref, 15);
 	}
@@ -435,6 +472,12 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 	foreach($tab as $section) {
 		$secName = TSectionPlanFormation::getSectionNameById($PDOdb, $section['fk_section']);
 		$secParenteName = TSectionPlanFormation::getSectionNameById($PDOdb, $section['fk_section_parente']);
+
+		$actionsButtons = '';
+		if($pf->statut == 0) {
+			$actionButtons = '<a href="section.php?id=' . $section['rowid'] . '&plan_id=' . $pf->id . '&action=edit">' . img_picto('', 'edit') . '</a>
+					<a href="planformation.php?id=' . $pf->id . '&action=delete_link&section_id=' . $section['fk_section'] . '">' . img_picto('', 'delete') . '</a>';
+		}
 		
 		$data[] = array(
 				'rowid' => $section['rowid']
@@ -445,10 +488,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 									<td width="300px">'. $secName .'</td>
 									<td width="200px">'. $section['groupe'] .'</td>
 									<td width="100px">' . price($section['budget'], 1, $langs, 1, -1, -1, 'auto') . '</td>
-									<td align="right" width="200px">
-										<a href="section.php?id=' . $section['rowid'] . '&plan_id=' . $pf->id . '&action=edit">' . img_picto('', 'edit') . '</a>
-										<a href="planformation.php?id=' . $pf->id . '&action=delete_link&section_id=' . $section['fk_section'] . '">' . img_picto('', 'delete') . '</a>
-									</td>
+									<td align="right" width="100px">' . $actionButtons . '</td>
 								</tr>
 							</table>'
 		);
@@ -457,7 +497,7 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 
 	print '<table class="liste centpercent">';
 	print '<tr class="liste_titre">';
-	print '<th class="liste_titre">Réf.</th><th class="liste_titre" width="300px">Titre</th><th class="liste_titre" width="200px">Groupe</th><th class="liste_titre" width="100px">Budget</th><th class="liste_titre" align="right" width="200px">Actions</th>';
+	print '<th class="liste_titre">Réf.</th><th class="liste_titre" width="300px">Titre</th><th class="liste_titre" width="200px">Groupe</th><th class="liste_titre" width="100px">Budget</th><th class="liste_titre" align="right" width="100px">&nbsp;</th>';
 	print '</tr>';
 
 	$nbofentries = (count($data) - 1);
@@ -478,38 +518,39 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 
 	// Ajout nouvelle section
 
+	if($pf->statut == 0) {
+		print '<tr class="liste_titre"><td colspan="5">' . $langs->trans('AddNewPFSection') . '</td></tr>';
 	
-	print '<tr class="liste_titre"><td colspan="5">' . $langs->trans('AddNewPFSection') . '</td></tr>';
-
-	$pfs = new TSection();
-	$TAvailableSection = $pfs->getAvailableSection($PDOdb, $pf->getId());
-
-	if(! empty($TAvailableSection)) {
-
-		$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formaddSection', 'POST');
+		$pfs = new TSection();
+		$TAvailableSection = $pfs->getAvailableSection($PDOdb, $pf->getId());
 	
-		$sectionsKeyVal = array('0' => $langs->trans('PFNoMotherSection'));
+		if(! empty($TAvailableSection)) {
 	
-		foreach($pf->TSectionPlanFormation as $sectionPF) {
-			$section = new TSection();
-			$section->load($PDOdb, $sectionPF->fk_section);
-	
-			$sectionsKeyVal[$sectionPF->id] = $section->title;
-		}
+			$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formaddSection', 'POST');
 		
-		print '<tr class="liste_titre">';
-		print '<th class="liste_titre">Ref.</th><th class="liste_titre" colspan="2">Section-mère</th><th class="liste_titre">Budget</th><th class="liste_titre" align="right" width="200px">&nbsp;</th>';
-		print '</tr>';
-
-		print '<tr class="impair">';
-		print '<td>' . $formCore->hidden('action', 'addsection') . $formCore->combo('', 'fk_section', $TAvailableSection, '') . '</td>';
-		print '<td colspan="2">' . $formCore->combo('', 'fk_section_mere', $sectionsKeyVal, '0', 1, '', ' style="min-width:150px"'). '</td>';
-		print '<td>' . $formCore->texte('', 'budget', '', 20, 20, ' style="width:80px"') . '</td>';
-		print '<td align="right">'. $formCore->btsubmit($langs->trans('Add'), 'addsection') . '</td></tr>';
+			$sectionsKeyVal = array('0' => $langs->trans('PFNoMotherSection'));
+		
+			foreach($pf->TSectionPlanFormation as $sectionPF) {
+				$section = new TSection();
+				$section->load($PDOdb, $sectionPF->fk_section);
+		
+				$sectionsKeyVal[$sectionPF->id] = $section->title;
+			}
+			
+			print '<tr class="liste_titre">';
+			print '<th class="liste_titre">Ref.</th><th class="liste_titre" colspan="2">Section-mère</th><th class="liste_titre">Budget</th><th class="liste_titre" align="right" width="100px">&nbsp;</th>';
+			print '</tr>';
 	
-		$formCore->end();
-	} else {
-		print '<tr class="impair"><td colspan="5" align="center">' . $langs->trans('ThisPFContainsAllExistingSections') . '</td></tr>';
+			print '<tr class="impair">';
+			print '<td>' . $formCore->hidden('action', 'addsection') . $formCore->combo('', 'fk_section', $TAvailableSection, '') . '</td>';
+			print '<td colspan="2">' . $formCore->combo('', 'fk_section_mere', $sectionsKeyVal, '0', 1, '', ' style="min-width:150px"'). '</td>';
+			print '<td>' . $formCore->texte('', 'budget', '', 20, 20, ' style="width:80px"') . '</td>';
+			print '<td align="right">'. $formCore->btsubmit($langs->trans('Add'), 'addsection') . '</td></tr>';
+		
+			$formCore->end();
+		} else {
+			print '<tr class="impair"><td colspan="5" align="center">' . $langs->trans('ThisPFContainsAllExistingSections') . '</td></tr>';
+		}
 	}
 
 	print "</table>";

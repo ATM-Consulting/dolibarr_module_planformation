@@ -21,13 +21,31 @@
 		<td width="20%">[planformation.date_end_title; strconv=no;]</td>
 		<td>[planformation.date_end; strconv=no;]</td>
 	</tr>
+<!--
 	<tr>
 		<td width="20%">[planformation.type_fin_label_title; strconv=no;]</td>
 		<td>[planformation.type_fin_label; strconv=no;]</td>
 	</tr>
+-->
 	<tr>
-		<td width="20%">[planformation.budget_title; strconv=no;]</td>
-		<td>[planformation.budget; strconv=no;]</td>
+		<td width="20%">[planformation.opca_title; strconv=no;]</td>
+		<td>[planformation.opca; strconv=no;]</td>
+	</tr>
+	<tr>
+		<td width="20%">[planformation.budget_previsionnel_title; strconv=no;]</td>
+		<td>[planformation.budget_previsionnel; strconv=no;]</td>
+	</tr>
+	<tr>
+		<td width="20%">[planformation.budget_finance_accepte_title; strconv=no;]</td>
+		<td>[planformation.budget_finance_accepte; strconv=no;]</td>
+	</tr>
+	<tr>
+		<td width="20%">[planformation.budget_finance_reel_title; strconv=no;]</td>
+		<td>[planformation.budget_finance_reel; strconv=no;]</td>
+	</tr>
+	<tr>
+		<td width="20%">[planformation.budget_consomme_title; strconv=no;]</td>
+		<td>[planformation.budget_consomme; strconv=no;]</td>
 	</tr>
 </table>
 
