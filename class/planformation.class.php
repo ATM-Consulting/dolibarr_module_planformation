@@ -35,8 +35,9 @@ class TPlanFormation extends TObjetStd
 		parent::add_champs('date_start, date_end', array('type'=>'date'));
 		parent::add_champs('ref,title', array('type'=>'string'));
 		// Ici
-		parent::add_champs('budget', array('type'=>'float'));
+		parent::add_champs('budget_previsionnel,budget_finance_accepte,budget_finance_reel,budget_consomme', array('type'=>'float'));
 		// Jusque là
+		parent::add_champs('fk_opca', array('type' => 'integer'));
 		parent::add_champs('fk_user_modification,fk_user_creation,entity', array('type'=>'integer','index'=>true));
 		parent::add_champs('statut', array('type' => 'integer'));
 
@@ -73,13 +74,19 @@ class TPlanFormation extends TObjetStd
 		$sql .= ' planform.fk_user_creation, ';
 		$sql .= ' planform.entity, ';
 		$sql .= ' planform.fk_type_financement,';
+		$sql .= ' planform.fk_opca,';
+		$sql .= ' soc.nom AS opca,';
 		// Ici
-		$sql .= ' planform.budget, ';
+		$sql .= ' planform.budget_previsionnel, ';
+		$sql .= ' planform.budget_finance_accepte, ';
+		$sql .= ' planform.budget_finance_reel, ';
+		$sql .= ' planform.budget_consomme, ';
 		// Jusque là
 		$sql .= ' dict.code as type_fin_code, ';
 		$sql .= ' dict.label as type_fin_label ';
 		$sql .= ' FROM ' . $this->get_table().' as planform';
 		$sql .= ' LEFT JOIN ' . $dict->get_table() . ' as dict ON (planform.fk_type_financement=dict.rowid)';
+		$sql .= ' LEFT JOIN '. MAIN_DB_PREFIX .'societe as soc ON (soc.rowid = planform.fk_opca)';
 		$sql .= ' WHERE planform.entity IN ('.getEntity(get_class($this)).')';
 
 		return $sql;
@@ -99,8 +106,12 @@ class TPlanFormation extends TObjetStd
 				'date_start' => $langs->trans('DateStart'),
 				'date_end' => $langs->trans('DateEnd'),
 				'title' => $langs->trans('Title'),
+				'opca' => $langs->trans('OPCA'),
 				// Ici
-				'budget' => $langs->trans('Budget'),
+				'budget_previsionnel' => $langs->trans('PFProjectedBudget'),
+				'budget_finance_accepte' => $langs->trans('PFApprovedFundedBudget'),
+				'budget_finance_reel' => $langs->trans('PFActualFundedBudget'),
+				'budget_consomme' => $langs->trans('PFUsedBudget'),
 				// Jusque là
 				'type_fin_label' => $langs->trans('PFTypeFin'),
 				'statut' => $langs->trans('Status')
@@ -243,7 +254,7 @@ class TPlanFormation extends TObjetStd
 			$budgetFilles += $sectionFille['budget'];
 		}
 
-		return ($this->budget - $budgetFilles);
+		return ($this->budget_previsionnel- $budgetFilles);
 	}
 }
 
@@ -519,7 +530,7 @@ class TSectionPlanFormation extends TObjetStd
             if(empty($pfsLink->fk_section_parente)) {
                 $pf = new TPlanFormation();
                 $pf->load($PDOdb, $this->fk_planform);
-                return $pf->budget - ($sommeBudget + $newBudget);
+                return $pf->budget_previsionnel- ($sommeBudget + $newBudget);
             }
             $pfsLinkParente = new TSectionPlanFormation();
             $pfsLinkParente->loadByCustom($PDOdb, array('fk_planform' => $this->fk_planform, 'fk_section' => $pfsLink->fk_section_parente));
