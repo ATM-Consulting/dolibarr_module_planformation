@@ -79,15 +79,24 @@ switch ($action) {
 	break;
 
 	case 'addsection':
-		$pfs_link = new TSectionPlanFormation();
-		$pfs_link->fk_planform = $pf->getId();
-		$pfs_link->fk_section = GETPOST('fk_section', 'int');
-		$pfs_link->fk_section_parente = GETPOST('fk_section_mere', 'int');
-		$pfs_link->budget = GETPOST('budget', 'int');
+	case 'savesection':
+		$section = new TSectionPlanFormation();
+		$sectionId = GETPOST('section', 'int');
 
-		if(! empty($pfs_link->fk_section_parente)) {
+		if(! empty($sectionId)) {
+			$section->load($PDOdb, $sectionId);
+		}
+
+		$section->title = GETPOST('title', 'alpha');
+		$section->fk_usergroup = GETPOST('fk_usergroup', 'int');
+		$section->fk_planform = $pf->id;
+		$section->fk_section = GETPOST('fk_section', 'int');
+		$section->fk_section_parente = GETPOST('fk_section_mere', 'int');
+		$section->budget = GETPOST('budget', 'int');
+
+		if(! empty($section->fk_section_parente)) {
 			$sectionParente = new TSectionPlanFormation();
-			$sectionParente->load($PDOdb, $pfs_link->fk_section_parente);
+			$sectionParente->load($PDOdb, $section->fk_section_parente);
 
 			$budgetRestant = $sectionParente->getRemainingBudget($PDOdb);
 
@@ -95,14 +104,30 @@ switch ($action) {
 			$budgetRestant = $pf->getRemainingBudget($PDOdb);
 		}
 
-		if($budgetRestant >= $pfs_link->budget) {
-			$pfs_link->save($PDOdb);
+		if($budgetRestant >= $section->budget) {
+			$section->save($PDOdb);
 		} else {
 			setEventMessage('PFBudgetOverflow', 'errors');
 		}
 
 		header('Location: '.$_SERVER['PHP_SELF'] . '?id=' . $pf->id);
 		exit;
+	break;
+
+	case 'deletesection':
+		$sectionId = GETPOST('section', 'int');
+		$section = new TSectionPlanFormation();
+		if($section->load($PDOdb, $sectionId)) {
+			if($section->fk_planform == $id) { 
+				$section->delete($PDOdb);
+			}
+		}
+
+		_card($PDOdb, $pf, $typeFin, 'view');
+	break;
+
+	case 'editsection':
+		_card($PDOdb, $pf, $typeFin, 'editsection');
 	break;
 
 	case 'delete_link':
@@ -293,7 +318,7 @@ function _info(TPDOdb &$PDOdb, TPlanFormation &$pf) {
  * @param TPlanFormation $pf
  * @param string $mode
  */
-function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, $mode = '') {
+function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, $mode = 'view') {
 	global $db, $langs, $user, $conf;
 
 	dol_include_once('/planformation/lib/planformation.lib.php');
@@ -329,7 +354,7 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 	$btModifier = '<a class="butAction" href="' . dol_buildpath('/planformation/planformation.php?id=' . $pf->rowid . '&action=edit', 1) . '">' . $langs->trans('Modify') . '</a>';
 
 	$btProposer = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid.'&action=propose" onclick="javascript:return confirm(\'' . $langs->trans('PFProposeConfirm') . '\')">'.$langs->trans('PFPropose').'</a>';
-	$btValider = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid.'&action=validate" onclick="javascript:return confirm(\'' . $langs->trans('PFDeleteConfirm') . '\')">'.$langs->trans('Validate').'</a>';
+	$btValider = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid.'&action=validate" onclick="javascript:return confirm(\'' . $langs->trans('PFValidateConfirm') . '\')">'.$langs->trans('Validate').'</a>';
 	$btAbandonner = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid.'&action=abandon" onclick="javascript:return confirm(\'' . $langs->trans('PFAbandonConfirm') . '\')">'.$langs->trans('PFAbandon').'</a>';
 	$btRouvrir = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid.'&action=reopen" onclick="javascript:return confirm(\'' . $langs->trans('PFReopenConfirm') . '\')">'.$langs->trans('PFReopen').'</a>';
 	$btRetravailler = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid.'&action=rework" onclick="javascript:return confirm(\'' . $langs->trans('PFReworkConfirm') . '\')">'.$langs->trans('PFRework').'</a>';
@@ -439,8 +464,8 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 
 	$formCore->end();
 
-	if($mode == 'view') {
-		_listPlanFormSection($PDOdb, $pf, $typeFin);
+	if($mode == 'view' || $mode == 'editsection') {
+		_listPlanFormSection($PDOdb, $pf, $typeFin, $mode);
 	}
 
 	llxFooter();
@@ -453,12 +478,12 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
  * @param TPlanFormation $pf
  * @param TTypeFinancement $typeFin
  */
-function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin) {
+function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, $mode) {
 	global $db, $langs;
 
 	$obj = new TSectionPlanFormation();
-	$tab = array();
-	$obj->getAllSection($PDOdb, $tab, $pf->id);
+	$TSections = array();
+	$obj->getAllSection($PDOdb, $TSections, $pf->id);
 
 	print load_fiche_titre($langs->trans("ListOfPFSection"). ' ('.$langs->trans("HierarchicView").')', '');
 	
@@ -469,35 +494,66 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 		,'title' => 'racine'
 	));
 
-	foreach($tab as $section) {
-		$secName = TSectionPlanFormation::getSectionNameById($PDOdb, $section['fk_section']);
-		$secParenteName = TSectionPlanFormation::getSectionNameById($PDOdb, $section['fk_section_parente']);
+	
+	$sectionId = GETPOST('section', 'int');
 
-		$actionsButtons = '';
-		if($pf->statut == 0) {
-			$actionButtons = '<a href="section.php?id=' . $section['rowid'] . '&plan_id=' . $pf->id . '&action=edit">' . img_picto('', 'edit') . '</a>
-					<a href="planformation.php?id=' . $pf->id . '&action=delete_link&section_id=' . $section['fk_section'] . '">' . img_picto('', 'delete') . '</a>';
+	foreach($TSections as $section) {
+
+		if($mode == 'editsection' && ! empty($sectionId) && $sectionId == $section['rowid']) {
+			$formCore = new TFormCore;
+			$form = new Form($db);
+
+			$sectionsKeyVal = array('0' => $langs->trans('PFNoMotherSection'));
+			
+			foreach($pf->TSectionPlanFormation as $sectionPF) {
+				$sectionsKeyVal[$sectionPF->id] = $sectionPF->title;
+			}
+
+			$entry = $formCore->begin_form($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formeditsection', 'POST');
+			$entry.= '<table class="nobordernopadding centpercent"><tr>';
+			$entry.= '<td>' . img_picto('', 'object_dir') . ' ' . $formCore->texte('', 'title', $section['title'], 64). '</td>';
+			$entry.= '<td width="300px">' . $formCore->combo('', 'fk_section_mere', $sectionsKeyVal, $section['fk_section_parente'], 1, '', ' style="min-width:150px"'). '</td>';
+			$entry.= '<td width="250px">' . $form->select_dolgroups($section['fk_usergroup'], 'fk_usergroup') .'</td>';
+			$entry.= '<td width="150px">' . $formCore->texte('', 'budget', $section['budget'], 20, 20, ' style="width:100px"') . '</td>';
+			$entry.= '<td align="right" width="100px">' . $formCore->hidden('action', 'savesection') . $formCore->btImg($langs->trans('Modify'), 'editsection', dol_buildpath('/theme/eldy/img/tick.png', 1)). '<a href="' . $_SERVER['PHP_SELF'] .'?id=' . $pf->id . '">' . img_picto($langs->trans('Cancel'), 'close') . '</a></td>';
+			$entry.= '</tr></table>';
+			$entry.= $formCore->end_form();
+		} else {
+			$actionsButtons = '';
+
+			if($pf->statut == 0) {
+				$actionButtons = '<a href="planformation.php?id=' . $pf->id . '&action=editsection&section=' . $section['rowid']. '">' . img_picto('', 'edit') . '</a>
+					<a href="planformation.php?id=' . $pf->id . '&action=deletesection&section=' . $section['rowid'] . '">' . img_picto('', 'delete') . '</a>';
+			}
+
+			$entry = '<table class="nobordernopadding centpercent"><tr>';
+			$entry.= '<td colspan="2">' . img_picto('', 'object_dir') . ' ' . $section['title']. '</td>';
+			$entry.= '<td width="250px">' . $section['groupe'] .'</td>';
+			$entry.= '<td width="150px">' . price($section['budget'], 1, $langs, 1, -1, -1, 'auto') . '</td>';
+			$entry.= '<td align="right" width="100px">' . $actionButtons . '</td>';
+			$entry.= '</tr></table>';
 		}
 		
 		$data[] = array(
 				'rowid' => $section['rowid']
 				,'fk_menu'=> $section['fk_section_parente']
-				,'entry' => '<table class="nobordernopadding centpercent">
-								<tr>
-									<td>' . img_picto('', 'object_planformation@planformation') . ' <a href="section.php?id='. $section['fk_section'] . '&plan_id=' . $pf->rowid . '"><b>' . $section['ref'] . '</b></a></td>
-									<td width="300px">'. $secName .'</td>
-									<td width="200px">'. $section['groupe'] .'</td>
-									<td width="100px">' . price($section['budget'], 1, $langs, 1, -1, -1, 'auto') . '</td>
-									<td align="right" width="100px">' . $actionButtons . '</td>
-								</tr>
-							</table>'
+				,'entry' => $entry
 		);
 	}
 
 
 	print '<table class="liste centpercent">';
 	print '<tr class="liste_titre">';
-	print '<th class="liste_titre">Réf.</th><th class="liste_titre" width="300px">Titre</th><th class="liste_titre" width="200px">Groupe</th><th class="liste_titre" width="100px">Budget</th><th class="liste_titre" align="right" width="100px">&nbsp;</th>';
+	if($mode == 'editsection' && ! empty($sectionId)) {
+		print '<th class="liste_titre">' . $langs->trans('Title') . '</th>';
+		print '<th class="liste_titre" width="300px">' . $langs->trans('PFMotherSection') . '</th>';
+		
+	} else {
+		print '<th class="liste_titre" colspan="2">' . $langs->trans('Title') . '</th>';
+	}
+	print '<th class="liste_titre" width="250px">' . $langs->trans('PFUsergroup') . '</th>';
+	print '<th class="liste_titre" width="150px">' . $langs->trans('PFBudget') . '</th>';
+	print '<th class="liste_titre" align="right" width="100px">&nbsp;</th>';
 	print '</tr>';
 
 	$nbofentries = (count($data) - 1);
@@ -505,52 +561,48 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 	if($nbofentries > 0) {
 		print '<tr class="impair"><td colspan="5">';
 		tree_recur($data, $data[0], 0);
-		print '</td>';
-		print '</tr>';
+		print '</td></tr>';
 	} else {
-		print '<tr class="impair">';
-		print '<td colspan="5" align="center">';
+		print '<tr class="impair"><td colspan="5" align="center">';
 		print $langs->trans('NoSectionsInPF');
-		print '</td>';
-		print '</tr>';
+		print '</td></tr>';
 	}
 
 
 	// Ajout nouvelle section
 
-	if($pf->statut == 0) {
+	if($mode == 'view' && $pf->statut == 0) {
 		print '<tr class="liste_titre"><td colspan="5">' . $langs->trans('AddNewPFSection') . '</td></tr>';
+
+		$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formaddSection', 'POST');
 	
-		$pfs = new TSection();
-		$TAvailableSection = $pfs->getAvailableSection($PDOdb, $pf->getId());
+		$sectionsKeyVal = array('0' => $langs->trans('PFNoMotherSection'));
 	
-		if(! empty($TAvailableSection)) {
-	
-			$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->id, 'formaddSection', 'POST');
-		
-			$sectionsKeyVal = array('0' => $langs->trans('PFNoMotherSection'));
-		
-			foreach($pf->TSectionPlanFormation as $sectionPF) {
-				$section = new TSection();
-				$section->load($PDOdb, $sectionPF->fk_section);
-		
-				$sectionsKeyVal[$sectionPF->id] = $section->title;
-			}
-			
-			print '<tr class="liste_titre">';
-			print '<th class="liste_titre">Ref.</th><th class="liste_titre" colspan="2">Section-mère</th><th class="liste_titre">Budget</th><th class="liste_titre" align="right" width="100px">&nbsp;</th>';
-			print '</tr>';
-	
-			print '<tr class="impair">';
-			print '<td>' . $formCore->hidden('action', 'addsection') . $formCore->combo('', 'fk_section', $TAvailableSection, '') . '</td>';
-			print '<td colspan="2">' . $formCore->combo('', 'fk_section_mere', $sectionsKeyVal, '0', 1, '', ' style="min-width:150px"'). '</td>';
-			print '<td>' . $formCore->texte('', 'budget', '', 20, 20, ' style="width:80px"') . '</td>';
-			print '<td align="right">'. $formCore->btsubmit($langs->trans('Add'), 'addsection') . '</td></tr>';
-		
-			$formCore->end();
-		} else {
-			print '<tr class="impair"><td colspan="5" align="center">' . $langs->trans('ThisPFContainsAllExistingSections') . '</td></tr>';
+		foreach($pf->TSectionPlanFormation as $sectionPF) {		
+			$sectionsKeyVal[$sectionPF->id] = $sectionPF->title;
 		}
+
+		dol_include_once('/core/class/html.form.class.php');
+
+		$form = new Form($db);
+
+		print '<tr class="liste_titre">';
+		print '<th class="liste_titre">' . $langs->trans('Title') . '</th>';
+		print '<th class="liste_titre" width="300px">' . $langs->trans('PFMotherSection') . '</th>';
+		print '<th class="liste_titre">' . $langs->trans('PFUsergroup') . '</th>';
+		print '<th class="liste_titre">' . $langs->trans('PFBudget') . '</th>';
+		print '<th class="liste_titre" align="right" width="100px">&nbsp;</th>';
+		print '</tr>';
+
+		print '<tr class="impair">';
+		print '<td>' . $formCore->texte('', 'title', '', 64) . '</td>';
+		print '<td>' . $formCore->combo('', 'fk_section_mere', $sectionsKeyVal, '0', 1, '', ' style="min-width:150px"'). '</td>';
+		print '<td>' . $form->select_dolgroups('', 'fk_usergroup') .'</td>';
+		print '<td>' . $formCore->texte('', 'budget', '', 20, 20, ' style="width:100px"') . '</td>';
+		print '<td align="right">'. $formCore->hidden('action', 'addsection') . $formCore->btsubmit($langs->trans('Add'), 'addsection') . '</td>';
+		print '</tr>';
+
+		$formCore->end();
 	}
 
 	print "</table>";
