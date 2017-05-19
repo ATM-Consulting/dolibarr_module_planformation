@@ -54,6 +54,32 @@ function planformationAdminPrepareHead()
     return $head;
 }
 
+
+function formation_prepare_head(TFormation &$formation)
+{
+	global $langs, $conf;
+
+	$langs->load("planformation@planformation");
+	
+	$h = 0;
+	$head = array();
+	
+	$head[$h][0] = dol_buildpath("/planformation/formation.php?id=".$formation->id, 1);
+	$head[$h][1] = $langs->trans("Card");
+	$head[$h][2] = 'formation';
+	$h++;
+	
+	$head[$h][0] = dol_buildpath("/planformation/formation.php?id=".$formation->id.'&action=info', 1);
+	$head[$h][1] = $langs->trans("Info");
+	$head[$h][2] = 'info';
+	$h++;
+	
+	complete_head_from_modules($conf, $langs, $object, $head, $h, 'formation');
+	
+	return $head;
+}
+
+
 function planformation_prepare_head(TPlanFormation &$pf)
 {
 	global $langs, $conf;

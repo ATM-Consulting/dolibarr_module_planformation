@@ -12,6 +12,7 @@ if(!defined('INC_FROM_DOLIBARR')) {
 
 dol_include_once('/planformation/class/dictionnaire.class.php');
 dol_include_once('/planformation/class/planformation.class.php');
+dol_include_once('/planformation/class/formation.class.php');
 
 $ATMdb=new TPDOdb;
 $ATMdb->db->debug=true;
@@ -28,10 +29,20 @@ $result=$ATMdb->Execute($sql);
 $o=new TSection;
 $o->init_db_by_vars($ATMdb);
 
+$o=new TFormation;
+$o->init_db_by_vars($ATMdb);
+
+
 $o=new TSectionPlanFormation;
 $o->init_db_by_vars($ATMdb);
 
+
+$o=new TSessionFormation;
+$o->init_db_by_vars($ATMdb);
+
+
+/*
 $sql = 'ALTER TABLE '.$o->table.' ADD UNIQUE INDEX uk_'.str_replace(MAIN_DB_PREFIX, '', $o->table).'_fk_section_fk_planform(fk_planform,fk_section)';
 $result=$ATMdb->Execute($sql);
-
+*/
 

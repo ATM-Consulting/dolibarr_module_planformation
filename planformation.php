@@ -322,7 +322,7 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 	global $db, $langs, $user, $conf;
 
 	dol_include_once('/planformation/lib/planformation.lib.php');
-        
+
 	$arrayofjs = array('/includes/jquery/plugins/jquerytreeview/jquery.treeview.js', '/includes/jquery/plugins/jquerytreeview/lib/jquery.cookie.js');
 	$arrayofcss = array('/includes/jquery/plugins/jquerytreeview/jquery.treeview.css');
 	

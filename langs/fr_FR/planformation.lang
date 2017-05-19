@@ -15,6 +15,7 @@ Permission1049516=Supprimer les sections
 # Admin
 #
 PFPlanFormation=Plan de formation
+PFPlansFormation=Plans de formation
 PFSection=Section
 ATMAbout = Ce module a été développé par <a href="http://www.atm-consulting.fr" target="_blank">ATM Consulting</a><br>Vous pouvez retrouver la documentation sur notre <a href="http://wiki.atm-consulting.fr/index.php/Accueil" target="_blank">wiki</a><br><br>Pour toute question technique ou retour, contactez-nous sur <a href="mailto:support@atm-consulting.fr">support@atm-consulting.fr</a><br><br>Pour toute question commerciale, contactez-nous sur <a href="mailto:contact@atm-consulting.fr">contact@atm-consulting.fr</a> ou au +33 9 77 19 50 70<br><br>Retrouvez nos autres modules sur <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=atm&submit_search=Rechercher" target="_blank">Dolistore</a>
 planformationSetup = Configuration du module plan formation
@@ -31,6 +32,10 @@ PFDictTypeFin=Plan Formation - Type de financement
 #
 # Menu / Button
 #
+PFFormation=Formation
+PFFormations=Formations
+PFNewFormation=Nouvelle formation
+PFFormationList=Liste des formations
 PFPlanFormationList=Liste des plans de formation
 PFPlanFormationNew=Nouveau plan de formation
 PFPlanFormationEdit=Modifier le plans de formation
@@ -53,11 +58,13 @@ PFNoMotherSection=Pas de section-mère
 AddNewPFSection=Ajout d'une nouvelle section
 PFBudgetOverflow=Impossible d'effectuer cette opération : cela provoquerait un dépassement de budget pour la section-mère.
 ThisPFContainsAllExistingSections=Ce plan de formation contient toutes les sections existantes.
+PFTotalBudget=Budget total
 PFDefaultBudget=Budget par défaut
 PFProjectedBudget=Budget prévisionnel
 PFApprovedFundedBudget=Budget financé accepté
 PFActualFundedBudget=Budget financé réel
 PFUsedBudget=Budget consommé
+PFFormationSessionList=Liste des sessions de cette formation
 
 PFPropose=Proposer
 PFRework=Retravailler
