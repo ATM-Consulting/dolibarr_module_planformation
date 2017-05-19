@@ -45,10 +45,10 @@ class TPlanFormation extends TObjetStd
 		parent::start();
 
 		$dt = new DateTime();
-		$dt->setDate($dt->format('Y'), 1, 1);
+		$dt->setDate($dt->format('Y') + 1, 1, 1);
 		$this->date_start = $dt->getTimestamp();
 
-		$dt->setDate($dt->format('Y'), 12, 31);
+		$dt->setDate($dt->format('Y') + 1, 12, 31);
 		$this->date_end = $dt->getTimestamp();
 
 		$this->setChild('TSectionPlanFormation', 'fk_planform');
