@@ -21,8 +21,8 @@
 
 class TPlanFormation extends TObjetStd
 {
-
 	protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
+
 
 	/**
 	 * __construct
@@ -32,7 +32,7 @@ class TPlanFormation extends TObjetStd
 
 		parent::set_table(MAIN_DB_PREFIX . 'planform');
 		parent::add_champs('fk_type_financement', array('type'=>'integer','index'=>true));
-		parent::add_champs('date_start, date_end', array('type'=>'date'));
+		parent::add_champs('date_start, date_end, date_demande, date_reponse', array('type'=>'date'));
 		parent::add_champs('ref,title', array('type'=>'string'));
 		// Ici
 		parent::add_champs('budget_previsionnel,budget_finance_accepte,budget_finance_reel,budget_consomme', array('type'=>'float'));
@@ -189,6 +189,7 @@ class TPlanFormation extends TObjetStd
 
 	public function propose(&$PDOdb) {
 		if($this->statut == 0) {
+			$this->date_demande = dol_now();
 			$this->statut = 1;
 			$this->save($PDOdb);
 

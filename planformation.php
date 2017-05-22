@@ -58,6 +58,43 @@ switch ($action) {
 		_card($PDOdb, $pf, $typeFin, 'edit');
 	break;
 
+	case 'setopcaanswer':
+		_card($PDOdb, $pf, $typeFin, 'setopcaanswer');
+	break;
+
+	case 'saveopcaanswer':
+		//$pf->set_values($_REQUEST);
+
+		$answer = GETPOST('answer', 'int');
+
+		$url = $_SERVER['PHP_SELF'] . '?id=' . $pf->id;
+
+		switch($answer) {
+			case '0':
+				$pf->set_values($_REQUEST);
+				$pf->validate($PDOdb);
+			break;
+
+			case '1':
+				$pf->set_values($_REQUEST);
+				$pf->abandon($PDOdb);
+			break;
+
+			case '2':
+				$pf->set_values($_REQUEST);
+				$pf->rework($PDOdb);
+			break;
+
+			case '-1':
+			default:
+				$url .= '&action=setopcaanswer';
+				setEventMessage('PFSetAnAnswer', 'errors');
+		}
+
+		header('Location: '.$url);
+		exit;
+	break;
+
 	case 'info':
 		_info($PDOdb, $pf);
 	break;
@@ -353,6 +390,8 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 	$btRetour = '<a class="butAction" href="' . dol_buildpath("/planformation/planformation.php?action=list", 1) . '">' . $langs->trans('BackToList') . '</a>';
 	$btModifier = '<a class="butAction" href="' . dol_buildpath('/planformation/planformation.php?id=' . $pf->rowid . '&action=edit', 1) . '">' . $langs->trans('Modify') . '</a>';
 
+	$btReponseOPCA = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid.'&action=setopcaanswer">'.$langs->trans('SetAcceptedRefused').'</a>';
+
 	$btProposer = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid.'&action=propose" onclick="javascript:return confirm(\'' . $langs->trans('PFProposeConfirm') . '\')">'.$langs->trans('PFPropose').'</a>';
 	$btValider = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid.'&action=validate" onclick="javascript:return confirm(\'' . $langs->trans('PFValidateConfirm') . '\')">'.$langs->trans('Validate').'</a>';
 	$btAbandonner = '<a class="butAction" href="'. $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid.'&action=abandon" onclick="javascript:return confirm(\'' . $langs->trans('PFAbandonConfirm') . '\')">'.$langs->trans('PFAbandon').'</a>';
@@ -377,7 +416,7 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 			$data['statut'] = 'Brouillon';
 		break;
 		case 1:
-			$buttons = $btRetour . ' ' . $btRetravailler . ' ' . $btValider . ' ' . $btAbandonner . ' ' . $btDelete;
+			$buttons = $btRetour . ' ' . $btReponseOPCA . ' ' . $btAbandonner . ' ' . $btDelete;
 			$data['statut'] = 'En attente';
 		break;
 		case 2:
@@ -464,11 +503,53 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 
 	$formCore->end();
 
-	if($mode == 'view' || $mode == 'editsection') {
+	if($pf->statut == 1 && $mode == 'setopcaanswer') {
+		_formReponseOPCA($PDOdb, $pf);
+	}
+
+	if($mode != 'edit') {
 		_listPlanFormSection($PDOdb, $pf, $typeFin, $mode);
 	}
 
 	llxFooter();
+}
+
+
+function _formReponseOPCA(&$PDOdb, &$pf) {
+	global $langs;
+	print load_fiche_titre($langs->trans("PFSetOPCAResponse"), '');
+
+	$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $pf->rowid, 'setopcaanswer', 'POST');
+
+	$TReponses = array(
+		-1 => ''
+		, 0 => $langs->trans('PFAccepted')
+		, 1 => $langs->trans('PFRefused')
+		, 2 => $langs->trans('PFPartialAnswer')
+	);
+
+	print $formCore->hidden('action', 'saveopcaanswer');
+	print $formCore->hidden('rowid', $pf->rowid);
+
+	print '<table class="border" width="100%">';
+
+	print '<tr><td class="titlefieldcreate">' . $langs->trans('PFAnswerDate') . '</td>';
+	print '<td>' . $formCore->doliCalendar('date_reponse', dol_now());
+
+	print '<tr><td class="titlefieldcreate">' . $langs->trans('PFAnswer') . '</td>';
+	print '<td>' . $formCore->combo('', 'answer', $TReponses, -1) . '</td></tr>';
+	
+	print '<tr><td class="titlefieldcreate">' . $langs->trans('PFApprovedFundedBudget') . '</td>';
+	print '<td>' . $formCore->texte('', 'budget_finance_accepte', '', 12) . '</td></tr>';
+	
+	print '</table>';
+
+	print '<div class="tabsAction">';
+	print '<button type="submit" class="butAction">' . $langs->trans('Validate') . '</button>';
+	print ' <a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $pf->rowid . '">' . $langs->trans('Cancel') . '</a>';
+	print '</div>';
+
+	$formCore->end();
 }
 
 

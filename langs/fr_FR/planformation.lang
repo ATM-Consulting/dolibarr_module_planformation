@@ -71,6 +71,13 @@ PFApprovedFundedBudget=Budget financé accepté
 PFActualFundedBudget=Budget financé réel
 PFUsedBudget=Budget consommé
 PFFormationSessionList=Liste des sessions de cette formation
+PFAnswerDate=Date réponse
+PFAnswer=Réponse
+PFAccepted=Accepté
+PFRefused=Refusé
+PFPartialAnswer=Réponse partielle
+PFSetAnAnswer=Veuillez sélectionner une réponse
+PFSetOPCAResponse=Saisie réponse OPCA
 
 PFPropose=Proposer
 PFRework=Retravailler
