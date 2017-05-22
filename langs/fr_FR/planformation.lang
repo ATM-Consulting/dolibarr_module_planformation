@@ -22,6 +22,7 @@ planformationSetup = Configuration du module plan formation
 planformationAbout = A propos du module plan formation
 PFSimpleNumRefModelDesc = Retourne un numéro sous la forme PLF-yymm-nnnn où yy est l'année, mm le mois et nnnn un compteur séquentiel sans rupture et sans remise à 0
 PFSimpleNumRefModelSecDesc = Retourne un numéro sous la forme PLS-yymm-nnnn où yy est l'année, mm le mois et nnnn un compteur séquentiel sans rupture et sans remise à 0
+PFSimpleSessionNumRefModelDesc = Retourne un numéro sous la forme SFyymm-nnnn où yy est l'année, mm le mois et nnnn un compteur séquentiel sans rupture et sans remise à 0
 
 
 #
@@ -36,6 +37,10 @@ PFFormation=Formation
 PFFormations=Formations
 PFNewFormation=Nouvelle formation
 PFFormationList=Liste des formations
+PFFormationSession=Session de formation
+PFFormationSessions=Sessions de formation
+PFFormationSessionList=Liste des sessions de formation
+PFNewFormationSession=Nouvelle session de formation
 PFPlanFormationList=Liste des plans de formation
 PFPlanFormationNew=Nouveau plan de formation
 PFPlanFormationEdit=Modifier le plans de formation
@@ -58,6 +63,7 @@ PFNoMotherSection=Pas de section-mère
 AddNewPFSection=Ajout d'une nouvelle section
 PFBudgetOverflow=Impossible d'effectuer cette opération : cela provoquerait un dépassement de budget pour la section-mère.
 ThisPFContainsAllExistingSections=Ce plan de formation contient toutes les sections existantes.
+PFBudget=Budget
 PFTotalBudget=Budget total
 PFDefaultBudget=Budget par défaut
 PFProjectedBudget=Budget prévisionnel

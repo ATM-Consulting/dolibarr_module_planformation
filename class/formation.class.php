@@ -44,6 +44,29 @@ class TFormation extends TObjetStd
 		$this->setChild('TSessionFormation', 'fk_formation');
 	}
 
+	function getAllWithCondition(&$PDOdb, $filter = '1') {
+		$sql = "SELECT rowid, title, budget_total, duree";
+		$sql.= " FROM " . $this->get_table();
+		$sql.= " WHERE ".$filter;
+
+		$res = $PDOdb->Execute($sql);
+		
+		$TReturn = array();
+
+		if($res) {
+			while($PDOdb->Get_line()) {
+				$TReturn[] = array(
+					'rowid' => $PDOdb->Get_field('rowid')
+					, 'title' => $PDOdb->Get_field('title')
+					, 'budget_total' => $PDOdb->Get_field('budget_total')
+					, 'duree' => $PDOdb->Get_field('duree')
+				);
+			}
+		}
+
+		return $TReturn;
+	}
+
 	function getNextId(&$PDOdb) {
 
 		$sql = "SELECT MAX(rowid) AS maxid FROM ".$this->get_table();

@@ -158,6 +158,24 @@ class modPlanFormation extends DolibarrModules
 				'current',
 				1
 		);
+		$this->const[] = array (
+				'PF_SESSION_ADDON',
+				'chaine',
+				'mod_planformation_session_simple',
+				'Numbering session planformation rule',
+				0,
+				'current',
+				1
+		);
+		$this->const[] = array (
+				'PF_SESSION_UNIVERSAL_MASK',
+				'chaine',
+				'',
+				'Numbering session planformation rule',
+				0,
+				'current',
+				1
+		);
 
 		// Array to add new pages in new tabs
 		// Example: $this->tabs = array('objecttype:+tabname1:Title1:mylangfile@planformation:$user->rights->planformation->read:/planformation/mynewtab1.php?id=__ID__', // To add a new tab identified by code tabname1
@@ -302,6 +320,8 @@ class modPlanFormation extends DolibarrModules
 		$r = 0;
 
 		// Add here entries to declare new menus
+
+		// Top menu
 		$this->menu[$r] = array (
 				'fk_menu' => 0,
 				'type' => 'top',
@@ -316,6 +336,8 @@ class modPlanFormation extends DolibarrModules
 				'user' => 2
 		);
 		$r ++;
+
+		// Menu "Plans de formation"
 		$this->menu[$r] = array (
 				'fk_menu' => 'fk_mainmenu=planformation',
 				'type' => 'left',
@@ -357,55 +379,10 @@ class modPlanFormation extends DolibarrModules
 				'perms' => '$user->rights->planformation->read',
 				'target' => '',
 				'user' => 2
-		);
+		);	
+		$r ++;
 
-/*
-		$r ++;
-		$this->menu[$r] = array (
-				'fk_menu' => 'fk_mainmenu=planformation',
-				'type' => 'left',
-				'titre' => 'PFSection',
-				'mainmenu' => 'planformation',
-				'leftmenu' => 'pfsectionleft',
-				'url' => '/planformation/section.php?action=list',
-				'langs' => 'planformation@planformation',
-				'position' => 100 + $r,
-				'enabled' => '',
-				'perms' => '$user->rights->planformation->section->read',
-				'target' => '',
-				'user' => 2
-		);
-		$r ++;
-		$this->menu[$r] = array (
-				'fk_menu' => 'fk_mainmenu=planformation,fk_leftmenu=pfsectionleft',
-				'type' => 'left',
-				'titre' => 'PFSectionList',
-				'mainmenu' => 'planformation',
-				'url' => '/planformation/section.php?action=list',
-				'langs' => 'planformation@planformation',
-				'position' => 100 + $r,
-				'enabled' => '$conf->planformation->enabled',
-				'perms' => '$user->rights->planformation->section->read',
-				'target' => '',
-				'user' => 2
-		);
-		$r ++;
-		$this->menu[$r] = array (
-				'fk_menu' => 'fk_mainmenu=planformation,fk_leftmenu=pfsectionleft',
-				'type' => 'left',
-				'titre' => 'PFSectionNew',
-				'mainmenu' => 'planformation',
-				'url' => '/planformation/section.php?action=new',
-				'langs' => 'planformation@planformation',
-				'position' => 100 + $r,
-				'enabled' => '$conf->planformation->enabled',
-				'perms' => '$user->rights->planformation->section->write',
-				'target' => '',
-				'user' => 2
-		);
-*/	
-		
-		$r ++;
+		// Menu	"Formations"
 		$this->menu[$r] = array (
 				'fk_menu' => 'fk_mainmenu=planformation',
 				'type' => 'left',
@@ -448,6 +425,53 @@ class modPlanFormation extends DolibarrModules
 				'target' => '',
 				'user' => 2
 		);
+		$r ++;
+		
+		// Menu	"Sessions de formation"
+		$this->menu[$r] = array (
+				'fk_menu' => 'fk_mainmenu=planformation',
+				'type' => 'left',
+				'titre' => 'PFFormationSessions',
+				'mainmenu' => 'planformation',
+				'leftmenu' => 'pfformationsessionleft',
+				'url' => '/planformation/formation.php?action=list',
+				'langs' => 'planformation@planformation',
+				'position' => 100 + $r,
+				'enabled' => '$conf->planformation->enabled',
+				'perms' => '$user->rights->planformation->section->read',
+				'target' => '',
+				'user' => 2
+		);
+		$r ++;
+		$this->menu[$r] = array (
+				'fk_menu' => 'fk_mainmenu=planformation,fk_leftmenu=pfformationsessionleft',
+				'type' => 'left',
+				'titre' => 'PFNewFormationSession',
+				'mainmenu' => 'planformation',
+				'url' => '/planformation/session.php?action=new',
+				'langs' => 'planformation@planformation',
+				'position' => 100 + $r,
+				'enabled' => '$conf->planformation->enabled',
+				'perms' => '$user->rights->planformation->section->write',
+				'target' => '',
+				'user' => 2
+		);
+		$r ++;
+		$this->menu[$r] = array (
+				'fk_menu' => 'fk_mainmenu=planformation,fk_leftmenu=pfformationsessionleft',
+				'type' => 'left',
+				'titre' => 'List',
+				'mainmenu' => 'planformation',
+				'url' => '/planformation/session.php?action=list',
+				'langs' => 'planformation@planformation',
+				'position' => 100 + $r,
+				'enabled' => '$conf->planformation->enabled',
+				'perms' => '$user->rights->planformation->section->read',
+				'target' => '',
+				'user' => 2
+		);
+		$r ++;
+
 
 		// Exports
 		$r = 1;

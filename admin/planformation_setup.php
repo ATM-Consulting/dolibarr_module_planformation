@@ -98,6 +98,14 @@ elseif ($action=='setmod') {
 	} else {
 		setEventMessages($langs->trans("Error") . ' ' . $db->lasterror, null, 'errors');
 	}
+}elseif ($action=='setmodsess') {
+	$code = 'PF_SESSION_ADDON';
+	if (dolibarr_set_const($db, $code, GETPOST('value','alpha'), 'chaine', 0, '', $conf->entity) > 0) {
+		header("Location: " . $_SERVER["PHP_SELF"]);
+		exit();
+	} else {
+		setEventMessages($langs->trans("Error") . ' ' . $db->lasterror, null, 'errors');
+	}
 }
 
 if (preg_match('/del_(.*)/', $action, $reg)) {
@@ -156,7 +164,8 @@ foreach ( $dirmodels as $reldir ) {
 			while ( ($file = readdir($handle)) !== false ) {
 				if ((substr($file, 0, 18) == 'mod_planformation_')
 						&& (substr($file, dol_strlen($file) - 3, 3) == 'php')
-						&& (substr($file, 0, 26) != 'mod_planformation_section_')) {
+						&& (substr($file, 0, 26) != 'mod_planformation_section_')
+						&& (substr($file, 0, 26) != 'mod_planformation_session_')) {
 					$file = substr($file, 0, dol_strlen($file) - 4);
 					require_once $dir . $file . '.php';
 
@@ -318,6 +327,105 @@ foreach ( $dirmodels as $reldir ) {
 												print $form->textwithpicto('', $htmltooltip, 1, 0);
 												print '</td>';
 
+												print "</tr>\n";
+									}
+						}
+			}
+			closedir($handle);
+		}
+	}
+}
+print "</table><br>\n";
+
+// Session de formation
+
+echo load_fiche_titre($langs->trans('PFFormationSession'));
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>' . $langs->trans("Name") . "</td>\n";
+print '<td>' . $langs->trans("Description") . "</td>\n";
+print '<td class="nowrap">' . $langs->trans("Example") . "</td>\n";
+print '<td align="center" width="60">' . $langs->trans("Status") . '</td>';
+print '<td align="center" width="16">' . $langs->trans("Infos") . '</td>';
+print '</tr>' . "\n";
+
+clearstatcache();
+
+$form = new Form($db);
+
+foreach ( $dirmodels as $reldir ) {
+	$dir = dol_buildpath($reldir . "core/modules/planformation/");
+	
+	if (is_dir($dir)) {
+		$handle = opendir($dir);
+		if (is_resource($handle)) {
+			$var = true;
+			while ( ($file = readdir($handle)) !== false ) {
+				if ((substr($file, 0, 26) == 'mod_planformation_session_')
+						&& (substr($file, dol_strlen($file) - 3, 3) == 'php')) {
+							$file = substr($file, 0, dol_strlen($file) - 4);
+							require_once $dir . $file . '.php';
+							
+							/**
+							 *
+							 * @var ModeleNumRefPlanFormation $module
+							 */
+							$module = new $file();
+							
+							// Show modules according to features level
+							if ($module->version == 'development' && $conf->global->MAIN_FEATURES_LEVEL < 2)
+								continue;
+								if ($module->version == 'experimental' && $conf->global->MAIN_FEATURES_LEVEL < 1)
+									continue;
+									
+									if ($module->isEnabled()) {
+										$var = ! $var;
+										print '<tr ' . $bc[$var] . '><td>' . $module->nom . "</td><td>\n";
+										print $module->info();
+										print '</td>';
+										
+										// Show example of numbering module
+										print '<td class="nowrap">';
+										$tmp = $module->getExample();
+										if (preg_match('/^Error/', $tmp))
+											print '<div class="error">' . $langs->trans($tmp) . '</div>';
+											elseif ($tmp == 'NotConfigured')
+											print $langs->trans($tmp);
+											else
+												print $tmp;
+												print '</td>' . "\n";
+												
+												print '<td align="center">';
+												if ($conf->global->PF_SESSION_ADDON == "$file") {
+													print img_picto($langs->trans("Activated"), 'switch_on');
+												} else {
+													print '<a href="' . $_SERVER["PHP_SELF"] . '?action=setmodsess&amp;value=' . $file . '">';
+													print img_picto($langs->trans("Disabled"), 'switch_off');
+													print '</a>';
+												}
+												print '</td>';
+												
+												$module_dest = new TSection();
+												$module_dest->_init_vars();
+												
+												// Info
+												$htmltooltip = '';
+												$htmltooltip .= '' . $langs->trans("Version") . ': <b>' . $module->getVersion() . '</b><br>';
+												$nextval = $module->getNextValue($user->id, $mysoc, $module_number);
+												if ("$nextval" != $langs->trans("NotAvailable")) // Keep " on nextval
+												{
+													$htmltooltip .= '' . $langs->trans("NextValue") . ': ';
+													if ($nextval) {
+														$htmltooltip .= $nextval . '<br>';
+													} else {
+														$htmltooltip .= $langs->trans($module->error) . '<br>';
+													}
+												}
+												
+												print '<td align="center">';
+												print $form->textwithpicto('', $htmltooltip, 1, 0);
+												print '</td>';
+												
 												print "</tr>\n";
 									}
 						}

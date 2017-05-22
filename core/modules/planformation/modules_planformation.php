@@ -22,6 +22,37 @@
  * \brief planformation for numbering planformation
  */
 
+require_once DOL_DOCUMENT_ROOT.'/core/class/commondocgenerator.class.php';
+
+
+/**
+ *	Parent class of invoice document generators
+ */
+abstract class ModelePDFPlanFormation extends CommonDocGenerator
+{
+	var $error='';
+	
+	/**
+	 *  Return list of active generation modules
+	 *
+	 *  @param	DoliDB	$db     			Database handler
+	 *  @param  integer	$maxfilenamelength  Max length of value to show
+	 *  @return	array						List of templates
+	 */
+	static function liste_modeles($db,$maxfilenamelength=0)
+	{
+		global $conf;
+		
+		$type='planform';
+		$liste=array();
+		
+		include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+		$liste=getListOfModels($db,$type,$maxfilenamelength);
+		
+		return $liste;
+	}
+}
+
 /**
  * Classe mere des modeles de numerotation des references de lead
  */
@@ -84,7 +115,7 @@ abstract class ModeleNumRefPlanFormation
 	 * @param Lead $lead Lead
 	 * @return string Valeur
 	 */
-	function getNextValue($fk_user, $objsoc, $pf)
+	function getNextValue($fk_user, $objsoc, $session)
 	{
 		global $langs;
 		return $langs->trans("NotAvailable");
@@ -115,3 +146,4 @@ abstract class ModeleNumRefPlanFormation
 		}
 	}
 }
+

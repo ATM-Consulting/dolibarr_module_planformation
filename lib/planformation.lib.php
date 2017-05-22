@@ -55,6 +55,30 @@ function planformationAdminPrepareHead()
 }
 
 
+function session_prepare_head(TSessionFormation &$session)
+{
+	global $langs, $conf;
+	
+	$langs->load("planformation@planformation");
+	
+	$h = 0;
+	$head = array();
+	
+	$head[$h][0] = dol_buildpath("/planformation/session.php?id=".$session->id, 1);
+	$head[$h][1] = $langs->trans("Card");
+	$head[$h][2] = 'session';
+	$h++;
+	
+	$head[$h][0] = dol_buildpath("/planformation/session.php?id=".$session->id.'&action=info', 1);
+	$head[$h][1] = $langs->trans("Info");
+	$head[$h][2] = 'info';
+	$h++;
+	
+	complete_head_from_modules($conf, $langs, $object, $head, $h, 'session');
+	
+	return $head;
+}
+
 function formation_prepare_head(TFormation &$formation)
 {
 	global $langs, $conf;
