@@ -36,7 +36,7 @@ class TSessionFormation extends TObjetStd
 		parent::add_champs('fk_formation', array('type'=>'integer','index'=>true));
 		parent::add_champs('fk_user_modification,fk_user_creation,entity', array('type'=>'integer','index'=>true));
 		parent::add_champs('fk_opca,is_interne', array('type'=>'integer'));
-		parent::add_champs('budget,budget_consomme,prise_en_charge_estimee,prise_en_charge_acceptee,prise_en_charge_reelle', array('type'=>'float'));
+		parent::add_champs('budget,budget_consomme,prise_en_charge_estimee,prise_en_charge_acceptee,prise_en_charge_reelle,duree_planifiee', array('type'=>'float'));
 		parent::add_champs('date_debut,date_fin', array('type'=>'date'));
 		
 		parent::_init_vars();
