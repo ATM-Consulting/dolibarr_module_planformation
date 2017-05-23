@@ -20,8 +20,8 @@ $action = GETPOST('action', 'alpha');
 $origin = GETPOST('origin', 'alpha');
 $originId = GETPOST('originid', 'int');
 
-$session = new TSessionFormation($PDOdb);
-$formation = new TFormation($PDOdb);
+$session = new TSessionFormation;
+$formation = new TFormation;
 
 if(! empty($id)) {
 	if(! $session->load($PDOdb, $id)) {
@@ -48,6 +48,7 @@ switch($action) {
 		if($action == 'add') {
 			$session->fk_user_creation = $user->id;
 			$session->ref = $session->getNextRef();
+			$session->duree_planifiee = 0;
 		} else {
 			$session->fk_user_modification = $user->id;
 		}
@@ -223,6 +224,8 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 	$opcaId = empty($session->fk_opca) ? $formation->fk_opca : $session->fk_opca;
 
 
+	
+	$TDataSession['duree_planifiee'] = secondesToHHMM(3600 * $session->duree_planifiee) . ' (' . $langs->trans('PFOverTimePlannedForThisFormation', secondesToHHMM(3600 * $formation->duree)) . ')';
 	$TDataSession['budget_consomme'] = price($session->budget_consomme, 1, $langs, 1, -1, -1, 'auto');
 	$TDataSession['prise_en_charge_acceptee'] = (round(10 * $session->prise_en_charge_acceptee) / 10) . '&nbsp;%';
 	$TDataSession['prise_en_charge_reelle'] = (round(10 * $session->prise_en_charge_reelle) / 10) . '&nbsp;%';
@@ -273,6 +276,7 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 					, 'interne_externe' => $langs->trans('PFInternalExternal')
 					, 'date_debut' => $langs->trans('DateStart')
 					, 'date_fin' => $langs->trans('DateEnd')
+					, 'duree_planifiee' => $langs->trans('PFPlannedTime')
 					, 'opca' => $langs->trans('OPCA')
 					, 'budget' => $langs->trans('PFBudget')
 					, 'budget_consomme' => $langs->trans('PFUsedBudget')

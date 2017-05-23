@@ -167,3 +167,14 @@ function planformation_section_prepare_head(TSection &$pfs)
         
 	return $head;
 }
+
+function secondesToHHMM($duree) {
+	$minutes = round($duree / 60) % 60;
+	$heures = ($duree - $minutes * 60) / 3600;
+
+	if($minutes < 10) {
+		$minutes = '0'.$minutes;
+	}
+	
+	return $heures.':'.$minutes;
+}

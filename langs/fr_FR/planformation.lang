@@ -96,6 +96,12 @@ PFSessionCalendar=Calendrier de la session de formation
 PFSessionNoTimeSlot=Aucun créneau n'a été programmé pour cette session de formation.
 PFAddNewSessionTimeSlot=Programmer un créneau
 PFCalendar=Calendrier
+PFStartTime=Heure début
+PFEndTime=Heure fin
+PFPlannedTime=Temps planifié
+PFOverTimePlannedForThisFormation=sur %s prévu pour cette formation
+PFSessionTooMuchTimePlanned=Ce créneau ferait dépasser la durée totale de la formation
+PFFormationTimePlanned=Vous avez planifié la totalité du temps prévu pour cette formation
 
 PFPropose=Proposer
 PFRework=Retravailler

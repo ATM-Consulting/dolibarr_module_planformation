@@ -40,31 +40,6 @@ if (! empty ( $id )) {
 }
 
 switch ($action) {
-	/*
-	 * case 'add':
-	 * case 'save':
-	 * $session->set_values($_REQUEST);
-	 *
-	 * if($action == 'add') {
-	 * $session->fk_user_creation = $user->id;
-	 * $session->ref = $session->getNextRef();
-	 * } else {
-	 * $session->fk_user_modification = $user->id;
-	 * }
-	 *
-	 * $session->save($PDOdb);
-	 *
-	 * header('Location: ' . $_SERVER['PHP_SELF'] . '?id='. $session->rowid);
-	 * exit;
-	 * break;
-	 *
-	 * case 'new':
-	 * case 'edit':
-	 * _card($PDOdb, $session, $formation, 'edit');
-	 * break;
-	 *
-	 */
-	
 	case 'addtimeslot' :
 		$date = GETPOST('date', 'alpha');
 		$heure_debut = GETPOST('heure_debut', 'alpha');
@@ -85,7 +60,16 @@ switch ($action) {
 				$creneau->debut = dol_mktime($THeureDebut[0], $THeureDebut[1], 0, $TDate[1], $TDate[0], $TDate[2]);
 				$creneau->fin = dol_mktime($THeureFin[0], $THeureFin[1], 0, $TDate[1], $TDate[0], $TDate[2]);
 
-				$creneau->save($PDOdb);
+				$dureeHeures = ($creneau->fin - $creneau->debut) / 3600;
+
+				$session->duree_planifiee += $dureeHeures;
+
+				if($session->duree_planifiee <= $formation->duree) {
+					$session->save($PDOdb);
+					$creneau->save($PDOdb);
+				} else {
+					setEventMessage($langs->trans('PFSessionTooMuchTimePlanned'), 'errors');
+				}
 			} else {
 				setEventMessage($langs->trans('PFTimeSlotOverlap'), 'errors');
 			}
@@ -100,8 +84,12 @@ switch ($action) {
 		$timeslotRowid = GETPOST ( 'timeslot' );
 		
 		if ($timeslotRowid > 0) {
-			$creneau->load ( $PDOdb, $timeslotRowid );
-			$creneau->delete ( $PDOdb );
+			$creneau->load($PDOdb, $timeslotRowid);
+
+			$session->duree_planifiee -= ($creneau->fin - $creneau->debut) / 3600;
+
+			$creneau->delete($PDOdb);
+			$session->save($PDOdb);
 		}
 		
 		_list ( $PDOdb, $session, $formation, $creneau );
@@ -125,14 +113,15 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 	print '<table class="liste centpercent">';
 	print '<tr class="liste_titre">';
 	print '<th class="liste_titre">' . $langs->trans ( 'Date' ) . '</th>';
-	print '<th class="liste_titre">' . $langs->trans ( 'Start' ) . '</th>';
-	print '<th class="liste_titre">' . $langs->trans ( 'End' ) . '</th>';
+	print '<th class="liste_titre">' . $langs->trans ( 'PFStartTime' ) . '</th>';
+	print '<th class="liste_titre">' . $langs->trans ( 'PFEndTime' ) . '</th>';
+	print '<th class="liste_titre">' . $langs->trans ( 'Duration' ) . '</th>';
 	print '<th class="liste_titre">&nbsp;</th>';
 	print '</tr>';
 	
 	$nbCreneaux = count ( $TCreneaux );
 
-	$duree = 0;
+	$dureeTotaleSecs = 0;
 
 	foreach ( $TCreneaux AS $c ) {
 		$actionsButtons = '';
@@ -140,11 +129,18 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 		// if($pf->statut == 0) {
 		$actionButtons = '<a href="' . $_SERVER ['PHP_SELF'] . '?id=' . $session->id . '&action=deletetimeslot&timeslot=' . $c->rowid . '">' . img_picto ( '', 'delete' ) . '</a>';
 		// }
-		
+
+		$date_debut = dol_stringtotime(str_replace(' ', 'T', $c->debut), 0);
+		$date_fin = dol_stringtotime(str_replace(' ', 'T', $c->fin), 0);
+		$duree = $date_fin - $date_debut;
+
+		$dureeTotaleSecs += $duree;
+
 		print '<tr>';
-		print '<td>' . dol_print_date(dol_stringtotime(str_replace(' ', 'T', $c->debut), 0), '%A %d %B %Y') . '</td>';
-		print '<td>' . dol_print_date(dol_stringtotime(str_replace(' ', 'T', $c->debut), 0), '%R'). '</td>';
-		print '<td>' . dol_print_date(dol_stringtotime(str_replace(' ', 'T', $c->fin), 0), '%R'). '</td>';
+		print '<td>' . dol_print_date($date_debut, '%A %d %B %Y') . '</td>';
+		print '<td>' . dol_print_date($date_debut, '%R'). '</td>';
+		print '<td>' . dol_print_date($date_fin, '%R'). '</td>';
+		print '<td>' . secondesToHHMM($duree). '</td>';
 		print '<td align="right">' . $actionButtons . '</td>';
 		print '</tr>';
 
@@ -152,34 +148,48 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 	}
 
 	if ($nbCreneaux == 0) {
-		print '<tr class="impair"><td colspan="4" align="center">';
+		print '<tr class="impair"><td colspan="5" align="center">';
 		print $langs->trans ( 'PFSessionNoTimeSlot' );
 		print '</td></tr>';
+	} else {
+		print '<tr class="impair">';
+		print '<td></td>';
+		print '<td></td>';
+		print '<td align="right"><b>' . $langs->trans('PFPlannedTime') . '</b></td>';
+		print '<td>' . secondesToHHMM($dureeTotaleSecs). ' (' . $langs->trans('PFOverTimePlannedForThisFormation', secondesToHHMM(3600 * $formation->duree)) . ')</td>';
+		print '<td></td>';
+		print '</tr>';
 	}
-	
+
+
 	// Ajout nouveau créneau
+
+	print '<tr class="liste_titre"><td colspan="5">' . $langs->trans ( 'PFAddNewSessionTimeSlot' ) . '</td></tr>';
+
+	if($session->duree_planifiee < $formation->duree) {
+		print '<tr class="liste_titre">';
+		print '<th class="liste_titre">' . $langs->trans ( 'Date' ) . '</th>';
+		print '<th class="liste_titre">' . $langs->trans ( 'PFStartTime' ) . '</th>';
+		print '<th class="liste_titre">' . $langs->trans ( 'PFEndTime' ) . '</th>';
+		print '<th class="liste_titre">' . '' . '</th>';
+		print '<th class="liste_titre">&nbsp;</th>';
+		print '</tr>';
 	
-
-	print '<tr class="liste_titre"><td colspan="4">' . $langs->trans ( 'PFAddNewSessionTimeSlot' ) . '</td></tr>';
-	print '<tr class="liste_titre">';
-	print '<th class="liste_titre">' . $langs->trans ( 'Date' ) . '</th>';
-	print '<th class="liste_titre">' . $langs->trans ( 'Start' ) . '</th>';
-	print '<th class="liste_titre">' . $langs->trans ( 'End' ) . '</th>';
-	print '<th class="liste_titre">&nbsp;</th>';
-	print '</tr>';
-
-	$formCore = new TFormCore ( $_SERVER ['PHP_SELF'] . '?id=' . $session->id, 'formAddAttendee', 'POST' );
-
-	print '<tr class="impair">';
-	print '<td>' . $formCore->calendrier('', 'date', '') . '</td>';
-	print '<td>' . $formCore->timepicker('', 'heure_debut', '') . '</td>';
-	print '<td>' . $formCore->timepicker('', 'heure_fin', ''). '</td>';
-	print '<td align="right">' . $formCore->hidden ( 'action', 'addtimeslot' ) . $formCore->hidden ( 'fk_session', $session->rowid ) . $formCore->btsubmit ( $langs->trans ( 'Add' ), 'addtimeslot' ) . '</td>';
-	print '</tr>';
-
-	$formCore->end();
+		$formCore = new TFormCore ( $_SERVER ['PHP_SELF'] . '?id=' . $session->id, 'formAddAttendee', 'POST' );
 	
-	// }
+		print '<tr class="impair">';
+		print '<td>' . $formCore->calendrier('', 'date', '') . '</td>';
+		print '<td>' . $formCore->timepicker('', 'heure_debut', '') . '</td>';
+		print '<td>' . $formCore->timepicker('', 'heure_fin', ''). '</td>';
+		print '<td>' . '' . '</td>';
+		print '<td align="right">' . $formCore->hidden ( 'action', 'addtimeslot' ) . $formCore->hidden ( 'fk_session', $session->rowid ) . $formCore->btsubmit ( $langs->trans ( 'Add' ), 'addtimeslot' ) . '</td>';
+		print '</tr>';
+	
+		$formCore->end();
+	
+	} else {
+		print '<tr><td colspan="5" align="center">' . $langs->trans ( 'PFFormationTimePlanned' ) . '</td></tr>';
+	}
 	
 	print "</table>";
 

@@ -20,6 +20,10 @@
 		<td>[session.date_fin; strconv=no;]</td>
 	</tr>
 	<tr>
+		<td class="titlefieldcreate">[trans.duree_planifiee; strconv=no;]</td>
+		<td>[session.duree_planifiee; strconv=no;]</td>
+	</tr>
+	<tr>
 		<td class="titlefieldcreate">[trans.opca; strconv=no;]</td>
 		<td>[session.opca; strconv=no;]</td>
 	</tr>
