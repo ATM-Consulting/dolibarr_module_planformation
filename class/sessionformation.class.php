@@ -161,4 +161,47 @@ class TSessionFormation extends TObjetStd
 		
 		return $TRes;
 	}
+
+	function getCreneaux(&$PDOdb) {
+		$TRes = array();
+
+		if($this->rowid <= 0) {
+			return false;
+		}
+
+		$sql = "SELECT rowid, debut, fin";
+		$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session_creneau";
+		$sql.= " ORDER BY debut ASC";
+
+		$res = $PDOdb->Execute($sql);
+		
+		if($res) {
+			for($i = 0; $i < $res->rowCount(); $i++) {
+				$TRes[] = $PDOdb->Get_line();
+			}
+		}
+
+		return $TRes;
+	}
+
+	function hasCreneauxBetween(&$PDOdb, $date_debut, $date_fin) {
+
+		$sql = "SELECT count(rowid) AS nb";
+		$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session_creneau";
+		$sql.= " WHERE debut < '" . $date_fin . "'";
+		$sql.= " AND fin > '" . $date_debut . "'";
+
+		$res = $PDOdb->Execute($sql);
+
+		if($res) {
+			$PDOdb->Get_line();
+			$nb = $PDOdb->Get_field('nb');
+
+			if($nb > 0) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

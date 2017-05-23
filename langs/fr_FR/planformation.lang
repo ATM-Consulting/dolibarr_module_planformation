@@ -90,6 +90,12 @@ PFAttendees=Participants
 PFNoSessionAttendee=Cette session n'a aucun participant
 PFAddNewSessionAttendee=Ajouter un participant
 PFAllUsersInThisSession=Tous les utilisateurs sont inscrits à cette session
+PFTimeSlotOverlap=Un créneau est déjà arrêté pendant cette plage pour cette formation
+PFStartTimeMustBeBeforeEndTime=L'heure de début doit être avant l'heure de fin
+PFSessionCalendar=Calendrier de la session de formation
+PFSessionNoTimeSlot=Aucun créneau n'a été programmé pour cette session de formation.
+PFAddNewSessionTimeSlot=Programmer un créneau
+PFCalendar=Calendrier
 
 PFPropose=Proposer
 PFRework=Retravailler
