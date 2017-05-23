@@ -114,5 +114,51 @@ class TSessionFormation extends TObjetStd
 		
 		return null;
 	}
+
+	function getParticipants(&$PDOdb) {
+		$TRes = array();
+
+		if($this->rowid <= 0) {
+			return false;
+		}
+
+		$sql = "SELECT p.rowid, p.fk_user, firstname, lastname";
+		$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session_participant AS p";
+		$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "user AS u ON (u.rowid=p.fk_user)";
+		$sql.= " WHERE u.statut = 1";
+		$sql.= " AND fk_session = " . $this->rowid;
+
+		$res = $PDOdb->Execute($sql);
+		
+		if($res) {
+			for($i = 0; $i < $res->rowCount(); $i++) {
+				$TRes[] = $PDOdb->Get_line();
+			}
+		}
+		
+		return $TRes;
+	}
 	
+	function getUsersNotSignedUp(&$PDOdb) {
+		$TRes = array();
+		
+		if($this->rowid <= 0) {
+			return false;
+		}
+		
+		$sql = "SELECT rowid, firstname, lastname";
+		$sql.= " FROM " . MAIN_DB_PREFIX . "user";
+		$sql.= " WHERE statut = 1";
+		$sql.= " AND rowid NOT IN (SELECT fk_user AS rowid FROM " . MAIN_DB_PREFIX . "planform_session_participant WHERE fk_session = " . $this->rowid. ")";
+
+		$res = $PDOdb->Execute($sql);
+		
+		if($res) {
+			for($i = 0; $i < $res->rowCount(); $i++) {
+				$TRes[] = $PDOdb->Get_line();
+			}
+		}
+		
+		return $TRes;
+	}
 }

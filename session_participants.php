@@ -103,12 +103,9 @@ function _list(&$PDOdb, &$session, &$formation, &$participant) {
 
 	
 	print load_fiche_titre($langs->trans('PFSessionAttendeeList'), '');
-	
-	
 
 
-	$TParticipants = $participant->getAllBySession($PDOdb, $session->rowid);
-	
+	$TParticipants = $session->getParticipants($PDOdb, $session->rowid);
 
 
 	print '<table class="liste centpercent">';
@@ -174,7 +171,7 @@ function _list(&$PDOdb, &$session, &$formation, &$participant) {
 		print '<tr class="liste_titre"><td colspan="2">' . $langs->trans('PFAddNewSessionAttendee') . '</td></tr>';
 		
 		
-		$TUsersPotentiels = $participant->getUsersNotInSession($PDOdb, $session->rowid);
+		$TUsersPotentiels = $session->getUsersNotSignedUp($PDOdb);
 
 		$formCore = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $session->id, 'formAddAttendee', 'POST');
 

@@ -89,6 +89,7 @@ PFSessionAttendeeList=Liste des participants de la session
 PFAttendees=Participants
 PFNoSessionAttendee=Cette session n'a aucun participant
 PFAddNewSessionAttendee=Ajouter un participant
+PFAllUsersInThisSession=Tous les utilisateurs sont inscrits à cette session
 
 PFPropose=Proposer
 PFRework=Retravailler
