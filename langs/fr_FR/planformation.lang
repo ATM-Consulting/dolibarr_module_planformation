@@ -79,12 +79,16 @@ PFPartialAnswer=Réponse partielle
 PFSetAnAnswer=Veuillez sélectionner une réponse
 PFSetOPCAAnswerBtn=Saisir réponse OPCA
 PFSetOPCAAnswer=Saisie réponse OPCA
-PFInternalExternal=Interne / externe
+PFInternalExternal=Interne / Externe
 PFInternal=Interne
 PFExternal=Externe
 PFEstimatedFunding=Prise en charge estimée
 PFApprovedFunding=Prise en charge acceptée
 PFActualFunding=Prise en charge réelle
+PFSessionAttendeeList=Liste des participants de la session
+PFAttendees=Participants
+PFNoSessionAttendee=Cette session n'a aucun participant
+PFAddNewSessionAttendee=Ajouter un participant
 
 PFPropose=Proposer
 PFRework=Retravailler

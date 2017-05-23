@@ -68,7 +68,12 @@ function session_prepare_head(TSessionFormation &$session)
 	$head[$h][1] = $langs->trans("Card");
 	$head[$h][2] = 'session';
 	$h++;
-	
+
+	$head[$h][0] = dol_buildpath("/planformation/session_participants.php?id=".$session->id, 1);
+	$head[$h][1] = $langs->trans("PFAttendees");
+	$head[$h][2] = 'attendees';
+	$h++;
+
 	$head[$h][0] = dol_buildpath("/planformation/session.php?id=".$session->id.'&action=info', 1);
 	$head[$h][1] = $langs->trans("Info");
 	$head[$h][2] = 'info';
