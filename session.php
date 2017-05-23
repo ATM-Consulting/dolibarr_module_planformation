@@ -220,8 +220,17 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 	}
 
 
-	$opcaId = empty($session->fk_opca) ? $formation->fk_opca: $session->fk_opca;
+	$opcaId = empty($session->fk_opca) ? $formation->fk_opca : $session->fk_opca;
 
+
+	$TDataSession['budget_consomme'] = price($session->budget_consomme, 1, $langs, 1, -1, -1, 'auto');
+	$TDataSession['prise_en_charge_acceptee'] = (round(10 * $session->prise_en_charge_acceptee) / 10) . '&nbsp;%';
+	$TDataSession['prise_en_charge_reelle'] = (round(10 * $session->prise_en_charge_reelle) / 10) . '&nbsp;%';
+	
+	$TInterneExterne = array(
+		0 => $langs->trans('PFExternal')
+		, 1 => $langs->trans('PFInternal')
+	);
 
 	if($mode == 'edit') {
 		$TDataSession['ref'] = empty($session->ref) ? $session->getNextRef() : $session->ref.$formCore->hidden('rowid', $session->rowid);
@@ -229,6 +238,8 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 		$TDataSession['date_debut'] = $formCore->doliCalendar('date_debut', $session->date_debut);
 		$TDataSession['date_fin'] = $formCore->doliCalendar('date_fin', $session->date_fin);
 		$TDataSession['opca'] = $form->select_company($opcaId, 'fk_opca', 's.fournisseur = 1');
+		$TDataSession['prise_en_charge_estimee'] = $formCore->texte('', 'prise_en_charge_estimee', $session->prise_en_charge_estimee, 20, 20, ' style="width:100px"') . '&nbsp;%';
+		$TDataSession['interne_externe'] = $formCore->combo('', 'is_interne', $TInterneExterne, $session->is_interne);
 
 		$submitAction = empty($session->rowid) ? 'add' : 'save';
 
@@ -238,6 +249,8 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 		$TDataSession['budget'] = price($session->budget, 1, $langs, 1, -1, -1, 'auto');
 		$TDataSession['date_debut'] = dol_print_date($session->date_debut);
 		$TDataSession['date_fin'] = dol_print_date($session->date_fin);
+		$TDataSession['prise_en_charge_estimee'] = (round(10 * $session->prise_en_charge_estimee) / 10) . '&nbsp;%';
+		$TDataSession['interne_externe'] = $TInterneExterne[$session->is_interne];
 
 		$opca = new Societe($db);
 
@@ -255,12 +268,17 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 	print $TBS->render('./tpl/session.tpl.php', array(), array(
 			'session' => $TDataSession
 			, 'trans' => array(
-					'ref' => $langs->transnoentitiesnoconv('Reference')
+					'ref' => $langs->trans('Reference')
 					, 'formation' => $langs->trans('PFFormation')
+					, 'interne_externe' => $langs->trans('PFInternalExternal')
 					, 'date_debut' => $langs->trans('DateStart')
 					, 'date_fin' => $langs->trans('DateEnd')
-					, 'budget' => $langs->transnoentitiesnoconv('PFBudget')
 					, 'opca' => $langs->trans('OPCA')
+					, 'budget' => $langs->trans('PFBudget')
+					, 'budget_consomme' => $langs->trans('PFUsedBudget')
+					, 'prise_en_charge_estimee' => $langs->trans('PFEstimatedFunding')
+					, 'prise_en_charge_acceptee' => $langs->trans('PFApprovedFunding')
+					, 'prise_en_charge_reelle' => $langs->trans('PFActualFunding')
 			)
 			, 'buttons' => $buttons
 	));

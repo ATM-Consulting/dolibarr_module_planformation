@@ -77,7 +77,14 @@ PFAccepted=Accepté
 PFRefused=Refusé
 PFPartialAnswer=Réponse partielle
 PFSetAnAnswer=Veuillez sélectionner une réponse
-PFSetOPCAResponse=Saisie réponse OPCA
+PFSetOPCAAnswerBtn=Saisir réponse OPCA
+PFSetOPCAAnswer=Saisie réponse OPCA
+PFInternalExternal=Interne / externe
+PFInternal=Interne
+PFExternal=Externe
+PFEstimatedFunding=Prise en charge estimée
+PFApprovedFunding=Prise en charge acceptée
+PFActualFunding=Prise en charge réelle
 
 PFPropose=Proposer
 PFRework=Retravailler
