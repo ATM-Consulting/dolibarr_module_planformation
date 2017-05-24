@@ -197,7 +197,7 @@ function _card(&$PDOdb, &$formation, $mode = 'view') {
 
 	$form->end();
 
-	_list_sessions($formation);
+	_list_sessions($PDOdb, $formation);
 
 	llxFooter();
 }
@@ -217,8 +217,90 @@ function _header_card(&$formation, $active) {
 
 
 
-function _list_sessions(&$formation) {
+function _list_sessions(&$PDOdb, &$formation) {
 	global $langs;
 
-	print load_fiche_titre($langs->trans('PFFormationSessionList'), '');
+	$list = new TListviewTBS('session');
+	
+	$sql = "SELECT s.rowid, ref, s.fk_formation, f.title AS formation, date_debut, date_fin, fk_opca, soc.nom AS opca, budget";
+	$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session AS s";
+	$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "planform_formation AS f ON (f.rowid=s.fk_formation)";
+	$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "societe AS soc ON (soc.rowid=s.fk_opca)";
+	$sql.= " WHERE fk_formation = " . $formation->rowid;
+	
+	
+	$TOrder = array('rowid' => 'ASC');
+	
+	$page = GETPOST('page', 'int');
+	$orderDown = GETPOST('orderDown', 'alpha');
+	$orderUp = GETPOST('orderUp', 'alpha');
+	
+	if(! empty($orderDown))
+		$TOrder = array($orderDown => 'DESC');
+		
+	if(! empty($orderUp))
+		$TOrder = array($orderUp => 'ASC');
+			
+			
+	$form = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $formation->rowid, 'session_list', 'POST');
+
+	echo $list->render($PDOdb, $sql, array(
+			'liste' => array(
+					'titre' => $langs->trans('PFThisFormationSessionList')
+					, 'image' => img_picto('', 'planformation@planformation', '', 0)
+					, 'messageNothing' => $langs->transnoentities('NoRecDossierToDisplay')
+			)
+			, 'limit' => array(
+					'page' => (! empty($page)) ? $page : 1
+					, 'nbLine' => $conf->liste_limit
+			)
+			, 'link' => array(
+					'ref' => '<a href="?id=@rowid@">@val@</a>'
+					, 'formation' => '<a href="' . dol_buildpath('/planformation/formation.php' , 1) . '?id=@fk_formation@">@val@</a>'
+					, 'opca' => img_picto('', 'object_company', '', 0). ' <a href="?id=@fk_opca@">@val@</a>'
+			)
+			, 'type' => array(
+					'date_debut' => 'date'
+					, 'date_fin' => 'date'
+			)
+			, 'hide' => array('rowid', 'fk_formation', 'fk_opca')
+			, 'title' => array(
+					'ref' => $langs->trans('Reference')
+					, 'formation' => $langs->trans('PFFormation')
+					, 'date_debut' => $langs->trans('DateStart')
+					, 'date_fin' => $langs->trans('DateEnd')
+					, 'budget' => $langs->trans('PFBudget')
+					, 'opca' => $langs->trans('OPCA')
+			)
+			, 'search' => array(
+					'ref' => array(
+							'recherche' => true
+					)
+					, 'formation' => array(
+							'recherche' => true
+							, 'table' => 'f'
+							, 'field' => 'title'
+					)
+					, 'date_debut' => array(
+							'recherche' => 'calendars'
+					)
+					, 'date_fin' => array(
+							'recherche' => 'calendars'
+					)
+					, 'opca' => array(
+							'recherche' => true
+							, 'table' => 'soc'
+							, 'field' => 'nom'
+					)
+			)
+			, 'orderBy' => $TOrder
+	));
+	
+	$form->end();
+
+	print '<div class="tabsAction">';
+	print '<a class="butAction" href="' . dol_buildpath('/planformation/session.php', 1) . '?action=new&origin=formation&originid='. $formation->rowid .'">';
+	print $langs->trans('PFCreateSessionOfThisFormation');
+	print '</a>';
+	print '</div>';
 }

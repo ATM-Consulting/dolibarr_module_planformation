@@ -225,7 +225,10 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 
 
 	
-	$TDataSession['duree_planifiee'] = secondesToHHMM(3600 * $session->duree_planifiee) . ' (' . $langs->trans('PFOverTimePlannedForThisFormation', secondesToHHMM(3600 * $formation->duree)) . ')';
+	$TDataSession['duree_planifiee'] = secondesToHHMM(3600 * $session->duree_planifiee);
+	if(! empty($formation->rowid)) {
+		$TDataSession['duree_planifiee'] .= ' (' . $langs->trans('PFOverTimePlannedForThisFormation', secondesToHHMM(3600 * $formation->duree)) . ')';
+	}
 	$TDataSession['budget_consomme'] = price($session->budget_consomme, 1, $langs, 1, -1, -1, 'auto');
 	$TDataSession['prise_en_charge_acceptee'] = (round(10 * $session->prise_en_charge_acceptee) / 10) . '&nbsp;%';
 	$TDataSession['prise_en_charge_reelle'] = (round(10 * $session->prise_en_charge_reelle) / 10) . '&nbsp;%';

@@ -101,11 +101,13 @@ PFCalendar=Calendrier
 PFStartTime=Heure début
 PFEndTime=Heure fin
 PFPlannedTime=Temps planifié
-PFOverTimePlannedForThisFormation=sur %s prévu pour cette formation
+PFOverTimePlannedForThisFormation=sur %s de temps prévu pour cette formation
 PFSessionTooMuchTimePlanned=Ce créneau ferait dépasser la durée totale de la formation
 PFFormationTimePlanned=Vous avez planifié la totalité du temps prévu pour cette formation
 PFTimeSlotOutOfSessionDates=Ce créneau est en dehors des dates de cette session de formation
 PFNoSessionAvailable=Aucune session n'est disponible
+PFCreateSessionOfThisFormation=Créer une session de cette formation
+PFThisFormationSessionList=Liste des sessions de cette formation
 
 PFPropose=Proposer
 PFRework=Retravailler
