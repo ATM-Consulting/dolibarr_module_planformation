@@ -197,7 +197,9 @@ function _card(&$PDOdb, &$formation, $mode = 'view') {
 
 	$form->end();
 
-	_list_sessions($PDOdb, $formation);
+	if($mode == 'view') {
+		_list_sessions($PDOdb, $formation);
+	}
 
 	llxFooter();
 }

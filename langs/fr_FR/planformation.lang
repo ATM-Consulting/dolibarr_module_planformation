@@ -108,6 +108,10 @@ PFTimeSlotOutOfSessionDates=Ce créneau est en dehors des dates de cette session
 PFNoSessionAvailable=Aucune session n'est disponible
 PFCreateSessionOfThisFormation=Créer une session de cette formation
 PFThisFormationSessionList=Liste des sessions de cette formation
+PFDraft=Brouillon
+PFInWaitOfAnswer=En attente
+PFValidated=Validé
+PFAbandoned=Abandonné
 
 PFPropose=Proposer
 PFRework=Retravailler

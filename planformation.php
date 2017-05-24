@@ -214,27 +214,6 @@ switch ($action) {
 		_card($PDOdb, $pf, $typeFin, 'editelement');
 	break;
 
-	case 'delete_link':
-		$sectionId = GETPOST('section_id', 'int');
-
-		if(! empty($sectionId)) {
-			$link_pfs = new TSectionPlanFormation();
-			$link_pfs->loadByCustom ($PDOdb, array(
-				'fk_planform' => $pf->rowid,
-				'fk_section' => $sectionId
-			));
-
-			$link_pfs->delete($PDOdb);
-
-			header('Location: '.$_SERVER['PHP_SELF'] . '?id=' . $pf->id);
-			exit;
-		}
-
-		// TODO setEventMessage
-
-		_card($PDOdb, $pf, $typeFin, 'view');
-	break;
-
 	case 'propose':
 		$pf->propose($PDOdb);
 
@@ -329,7 +308,7 @@ function _list(TPDOdb &$PDOdb, TPlanFormation &$pf) {
 					'type_fin_label'
 					
 			),
-			'title' => $pf->getTrans(),
+			'title' => TPlanformation::getTrans(),
 			'liste' => array (
 					'titre' => $langs->trans('PFPlanFormationList'),
 					'image' => img_picto('', 'planformation@planformation', '', 0),
@@ -453,29 +432,31 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 		setEventMessages(null, $typeFin->errors, 'errors');
 	}
 
-	// Fill form with title and data
-	$data = $pf->getTrans('title');
+
+	$TDataPF = array();
 
 
 	switch($pf->statut) {
 		case 0:
 			$buttons = $btRetour . ' ' . $btModifier . ' ' . $btProposer . ' ' . $btAbandonner . ' ' . $btDelete;
-			$data['statut'] = 'Brouillon';
+			$TDataPF['statut'] = $langs->trans('PFDraft');
 		break;
+
 		case 1:
 			$buttons = $btRetour . ' ' . $btReponseOPCA . ' ' . $btAbandonner . ' ' . $btDelete;
-			$data['statut'] = 'En attente';
+			$TDataPF['statut'] = $langs->trans('PFInWaitOfAnswer');
 		break;
+
 		case 2:
 			$buttons = $btRetour . ' ' . $btRouvrir. ' ' . $btDelete;
-			$data['statut'] = 'Validée';
+			$TDataPF['statut'] = $langs->trans('PFValidated');
 		break;
+
 		case 3:
 			$buttons = $btRetour . ' ' . $btRouvrir. ' ' . $btDelete;
-			$data['statut'] = 'Abandonnée';
+			$TDataPF['statut'] = $langs->trans('PFAbandoned');
 		break;
 	}
-
 
 
 	if ($mode == 'edit') {
@@ -484,68 +465,65 @@ function _card(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, 
 		
 		$form = new Form($db);
 
-		$data['titre'] = load_fiche_titre($pf->getId() > 0 ? $langs->trans("PFPlanFormationEdit") : $langs->trans("PFPlanFormationNew"), '');
-		$data['title'] = $formCore->texte('', 'title', $pf->title, 30, 255);
-		$data['type_fin_label'] = $formCore->combo('', 'fk_type_financement', $typeFin->lines, '');
-		$data['date_start'] = $formCore->doliCalendar('date_start', $pf->date_start);
-		$data['date_end'] = $formCore->doliCalendar('date_end', $pf->date_end);
+		$TDataPF['titre'] = load_fiche_titre($pf->getId() > 0 ? $langs->trans("PFPlanFormationEdit") : $langs->trans("PFPlanFormationNew"), '');
+		$TDataPF['title'] = $formCore->texte('', 'title', $pf->title, 30, 255);
+		$TDataPF['type_fin_label'] = $formCore->combo('', 'fk_type_financement', $typeFin->lines, '');
+		$TDataPF['date_start'] = $formCore->doliCalendar('date_start', $pf->date_start);
+		$TDataPF['date_end'] = $formCore->doliCalendar('date_end', $pf->date_end);
+		$TDataPF['opca'] = $form->select_company($pf->fk_opca, 'fk_opca', 's.fournisseur = 1');
+		$TDataPF['budget_previsionnel'] = $formCore->texte('', 'budget_previsionnel', $pf->budget_previsionnel, 30, 255);
+		$TDataPF['budget_finance_reel'] = price($pf->budget_finance_reel, 1, $langs, 1, -1, -1, 'auto');
+		$TDataPF['budget_finance_accepte'] = price($pf->budget_finance_accepte, 1, $langs, 1, -1, -1, 'auto');
+		$TDataPF['budget_finance_reel'] = price($pf->budget_finance_reel, 1, $langs, 1, -1, -1, 'auto');
+		$TDataPF['budget_consomme'] = price($pf->budget_consomme, 1, $langs, 1, -1, -1, 'auto');
 
-		$data['opca'] = $form->select_company($pf->fk_opca, 'fk_opca', 's.fournisseur = 1');
-		// Ici
-		$data['budget_previsionnel'] = $formCore->texte('', 'budget_previsionnel', $pf->budget_previsionnel, 30, 255);
-		$data['budget_finance_reel'] = price($pf->budget_finance_reel, 1, $langs, 1, -1, -1, 'auto');
-		$data['budget_finance_accepte'] = price($pf->budget_finance_accepte, 1, $langs, 1, -1, -1, 'auto');
-		$data['budget_finance_reel'] = price($pf->budget_finance_reel, 1, $langs, 1, -1, -1, 'auto');
-		$data['budget_consomme'] = price($pf->budget_consomme, 1, $langs, 1, -1, -1, 'auto');
-		// Jusque là
 
 		if ($conf->global->PF_ADDON == 'mod_planformation_universal') {
-			$data['ref'] = $formCore->texte('', 'ref', $pf->ref, 15, 255);
+			$TDataPF['ref'] = $formCore->texte('', 'ref', $pf->ref, 15, 255);
 		} elseif ($conf->global->PF_ADDON == 'mod_planformation_simple') {
-			$result = $pf->getNextNumRef();
+			$result = TPlanFormation::getNextNumRef();
 			if ($result == - 1) {
 				setEventMessages(null, $pf->errors, 'errors');
 			}
-			$data['ref'] = $result;
+			$TDataPF['ref'] = $result;
 			echo $formCore->hidden('action', 'save');
 			echo $formCore->hidden('ref', $result);
 		}
 
 		$buttons = $btSave . ' ' . $btCancel;
 	} else {
-		$data['titre'] = load_fiche_titre($langs->trans("PFPlanFormationCard"), '');
-		$data['type_fin_label'] = $typeFin->lines[$pf->fk_type_financement];
-		$data['date_start'] = dol_print_date($pf->date_start);
-		$data['date_end'] = dol_print_date($pf->date_end);
-		$data['title'] = $pf->title;
+		$TDataPF['titre'] = load_fiche_titre($langs->trans("PFPlanFormationCard"), '');
+		$TDataPF['type_fin_label'] = $typeFin->lines[$pf->fk_type_financement];
+		$TDataPF['date_start'] = dol_print_date($pf->date_start);
+		$TDataPF['date_end'] = dol_print_date($pf->date_end);
+		$TDataPF['title'] = $pf->title;
 
 		$opca = new Societe($db);
 		
 		if(! empty($pf->fk_opca)) {
 			$opca->fetch($pf->fk_opca);
-			$data['opca'] = $opca->getNomUrl(1);
+			$TDataPF['opca'] = $opca->getNomUrl(1);
 		} else {
-			$data['opca'] = $langs->trans('PFNoOPCASelected');
+			$TDataPF['opca'] = $langs->trans('PFNoOPCASelected');
 		}
 
-		// Ici
-		$data['budget_previsionnel'] = price($pf->budget_previsionnel, 1, $langs, 1, -1, -1, 'auto');
-		$data['budget_finance_accepte'] = price($pf->budget_finance_accepte, 1, $langs, 1, -1, -1, 'auto');
-		$data['budget_finance_reel'] = price($pf->budget_finance_reel, 1, $langs, 1, -1, -1, 'auto');
-		$data['budget_consomme'] = price($pf->budget_consomme, 1, $langs, 1, -1, -1, 'auto');
-		// Jusque là
-		$data['ref'] = $formCore->texte('', 'ref', $pf->ref, 15);
+		$TDataPF['budget_previsionnel'] = price($pf->budget_previsionnel, 1, $langs, 1, -1, -1, 'auto');
+		$TDataPF['budget_finance_accepte'] = price($pf->budget_finance_accepte, 1, $langs, 1, -1, -1, 'auto');
+		$TDataPF['budget_finance_reel'] = price($pf->budget_finance_reel, 1, $langs, 1, -1, -1, 'auto');
+		$TDataPF['budget_consomme'] = price($pf->budget_consomme, 1, $langs, 1, -1, -1, 'auto');
+
+		$TDataPF['ref'] = $formCore->texte('', 'ref', $pf->ref, 15);
 	}
-		
-	// Todo mandatory fields
+
 	print $TBS->render('./tpl/planformation.tpl.php', array(), array(
-		'planformation' => $data
-		,'view' => array (
+		'planformation' => $TDataPF
+		, 'trans' => TPlanFormation::getTrans()
+		, 'view' => array (
 			'mode' => $mode 
 		)
-		,'buttons' => array (
+		, 'buttons' => array (
 			'buttons' => $buttons 
-		) 
+		)
 	));
 
 	$formCore->end();
@@ -609,9 +587,8 @@ function _formReponseOPCA(&$PDOdb, &$pf) {
 function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancement &$typeFin, $mode) {
 	global $db, $langs;
 
-	$obj = new TSectionPlanFormation();
-	$TSections = array();
-	$obj->getAllSection($PDOdb, $TSections, $pf->id);
+
+	$TSections = $pf->getAllSections($PDOdb);
 
 	print load_fiche_titre($langs->trans("ListOfPFSection"), '');
 
