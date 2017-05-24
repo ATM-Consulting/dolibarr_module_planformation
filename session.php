@@ -217,7 +217,8 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 	if(empty($formation->rowid)) {
 		$TDataSession['formation'] = $formCore->combo('', 'fk_formation', $TFormations, '');
 	} else {
-		$TDataSession['formation'] = '<a href="' . dol_buildpath('/planformation/formation.php?id='.$formation->rowid, 1) . '">' . $formation->title . '</a>';
+		$TDataSession['formation'] = '<a href="' . dol_buildpath('/planformation/formation.php?id='.$formation->rowid, 1) . '">' . $formation->title . '</a> ';
+		$TDataSession['formation'].= $formCore->hidden('fk_formation', $formation->rowid);
 	}
 
 
