@@ -102,6 +102,7 @@ PFPlannedTime=Temps planifié
 PFOverTimePlannedForThisFormation=sur %s prévu pour cette formation
 PFSessionTooMuchTimePlanned=Ce créneau ferait dépasser la durée totale de la formation
 PFFormationTimePlanned=Vous avez planifié la totalité du temps prévu pour cette formation
+PFTimeSlotOutOfSessionDates=Ce créneau est en dehors des dates de cette session de formation
 
 PFPropose=Proposer
 PFRework=Retravailler

@@ -60,15 +60,19 @@ switch ($action) {
 				$creneau->debut = dol_mktime($THeureDebut[0], $THeureDebut[1], 0, $TDate[1], $TDate[0], $TDate[2]);
 				$creneau->fin = dol_mktime($THeureFin[0], $THeureFin[1], 0, $TDate[1], $TDate[0], $TDate[2]);
 
-				$dureeHeures = ($creneau->fin - $creneau->debut) / 3600;
-
-				$session->duree_planifiee += $dureeHeures;
-
-				if($session->duree_planifiee <= $formation->duree) {
-					$session->save($PDOdb);
-					$creneau->save($PDOdb);
+				if($creneau->debut >= $session->date_debut && $creneau->fin <= ($session->date_fin + 86400)) { // date_fin -> le jour de la fin à minuit, on rajoute un jour en rajoutant 86400s
+					$dureeHeures = ($creneau->fin - $creneau->debut) / 3600;
+	
+					$session->duree_planifiee += $dureeHeures;
+	
+					if($session->duree_planifiee <= $formation->duree) {
+						$session->save($PDOdb);
+						$creneau->save($PDOdb);
+					} else {
+						setEventMessage($langs->trans('PFSessionTooMuchTimePlanned'), 'errors');
+					}
 				} else {
-					setEventMessage($langs->trans('PFSessionTooMuchTimePlanned'), 'errors');
+					setEventMessage($langs->trans('PFTimeSlotOutOfSessionDates'), 'errors');
 				}
 			} else {
 				setEventMessage($langs->trans('PFTimeSlotOverlap'), 'errors');
