@@ -255,7 +255,51 @@ class TPlanFormation extends TObjetStd
 			$budgetFilles += $sectionFille['budget'];
 		}
 
-		return ($this->budget_previsionnel- $budgetFilles);
+		return($this->budget_previsionnel- $budgetFilles);
+	}
+
+	public function getAvailableSessions(&$PDOdb) {
+		$TRes = array();
+
+		$sql = "SELECT s.rowid, s.ref, f.title, s.date_debut, s.date_fin";
+		$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session AS s";
+		$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "planform_formation AS f ON (f.rowid = s.fk_formation)";
+		$sql.= " WHERE s.rowid NOT IN (";
+		$sql.= "	SELECT fk_session AS rowid";
+		$sql.= "	FROM " . MAIN_DB_PREFIX . "planform_assoc_session";
+		$sql.= " )";
+
+		$res = $PDOdb->Execute($sql);
+		if($res) {
+			for($i = 0; $i < $res->rowCount(); $i++) {
+				$TRes[] = $PDOdb->Get_line();
+			}
+		}
+
+		return $TRes;
+	}
+
+	public function getSessions($PDOdb) {
+		$TRes = array();
+
+		if($this->rowid <= 0) {
+			return $TRes;
+		}
+
+		$sql = "SELECT pas.rowid, s.rowid as sessionid, s.ref, f.title, pas.fk_section_parente, s.budget, s.date_debut, s.date_fin";
+		$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session AS s";
+		$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "planform_formation AS f ON (f.rowid = s.fk_formation)";
+		$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "planform_assoc_session AS pas ON (s.rowid = pas.fk_session)";
+		$sql.= " WHERE pas.fk_planform = " . $this->rowid;
+		
+		$res = $PDOdb->Execute($sql);
+		if($res) {
+			for($i = 0; $i < $res->rowCount(); $i++) {
+				$TRes[] = $PDOdb->Get_line();
+			}
+		}
+
+		return $TRes;
 	}
 }
 
@@ -495,6 +539,8 @@ class TSectionPlanFormation extends TObjetStd
 		parent::_init_vars();
 
 		parent::start();
+
+		$this->setChild('TPlanFormationSession', 'fk_section_parente');
 	}
         
         public function delete(&$PDOdb) {
