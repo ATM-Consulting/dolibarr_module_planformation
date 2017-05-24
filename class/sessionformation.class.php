@@ -171,6 +171,7 @@ class TSessionFormation extends TObjetStd
 
 		$sql = "SELECT rowid, debut, fin";
 		$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session_creneau";
+		$sql.= " WHERE fk_session = " . $this->rowid;
 		$sql.= " ORDER BY debut ASC";
 
 		$res = $PDOdb->Execute($sql);
@@ -188,7 +189,8 @@ class TSessionFormation extends TObjetStd
 
 		$sql = "SELECT count(rowid) AS nb";
 		$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session_creneau";
-		$sql.= " WHERE debut < '" . $date_fin . "'";
+		$sql.= " WHERE fk_session = " . $this->rowid;
+		$sql.= " AND debut < '" . $date_fin . "'";
 		$sql.= " AND fin > '" . $date_debut . "'";
 
 		$res = $PDOdb->Execute($sql);
