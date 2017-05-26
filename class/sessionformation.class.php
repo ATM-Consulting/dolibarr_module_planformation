@@ -207,6 +207,48 @@ class TSessionFormation extends TObjetStd
 		return false;
 	}
 
+	function addCreneau(&$PDOdb, $date, $heure_debut, $heure_fin) {
+		global $langs;
+
+		if(strcmp($heure_debut, $heure_fin) < 0) {
+			$TDate = explode('/', $date);
+			
+			$dateSQL = $TDate[2] . '-' . $TDate[1] . '-' . $TDate[0] . ' ';
+			$date_debut = $dateSQL.$heure_debut.':00';
+			$date_fin = $dateSQL.$heure_fin.':00';
+			
+			if(! $this->hasCreneauxBetween($PDOdb, $date_debut, $date_fin)) {
+				$THeureDebut = explode(':', $heure_debut);
+				$THeureFin = explode(':', $heure_fin);
+
+				$creneau = new TCreneauSession;
+				
+				$creneau->fk_session = $this->rowid;
+				$creneau->debut = dol_mktime($THeureDebut[0], $THeureDebut[1], 0, $TDate[1], $TDate[0], $TDate[2]);
+				$creneau->fin = dol_mktime($THeureFin[0], $THeureFin[1], 0, $TDate[1], $TDate[0], $TDate[2]);
+				
+				if($creneau->debut >= $this->date_debut && $creneau->fin <= ($this->date_fin + 86400)) { // date_fin -> le jour de la fin à minuit, on rajoute un jour en rajoutant 86400s
+					$dureeHeures = ($creneau->fin - $creneau->debut) / 3600;
+					
+					$this->duree_planifiee += $dureeHeures;
+					
+					if($this->duree_planifiee <= $formation->duree) {
+						$this->save($PDOdb);
+						$creneau->save($PDOdb);
+					} else {
+						setEventMessage($langs->trans('PFSessionTooMuchTimePlanned'), 'errors');
+					}
+				} else {
+					setEventMessage($langs->trans('PFTimeSlotOutOfSessionDates'), 'errors');
+				}
+			} else {
+				setEventMessage($langs->trans('PFTimeSlotOverlap'), 'errors');
+			}
+		} else {
+			setEventMessage($langs->trans('PFStartTimeMustBeBeforeEndTime'), 'errors');
+		}
+	}
+
 	function validate(&$PDOdb) {
 		global $langs;
 

@@ -119,6 +119,30 @@ PFCannotValidateASessionWithNoAttendees=Veuillez inscrire au moins un participan
 PFTryingToValidateANonDraftSession=Impossible de valider une session qui n'est pas un brouillon
 PFSessionStart=Début de la session
 PFSessionEnd=Fin de la session
+AddASingleTimeSlotOn=Ajouter un créneau unique le
+PFAddATimeSlotEvery=Ajouter un créneau tous les
+PFduringNWeeks=pendant %s semaines
+PFfromDate=à partir du
+PFfromTime=de
+PFtoTime=à
+
+#Days as per date('w') => Sunday is 0
+PFDay0=dimanche
+PFDay1=lundi
+PFDay2=mardi
+PFDay3=mercredi
+PFDay4=jeudi
+PFDay5=vendredi
+PFDay6=samedi
+PFDay0Plural=dimanches
+PFDay1Plural=lundis
+PFDay2Plural=mardis
+PFDay3Plural=mercredis
+PFDay4Plural=jeudis
+PFDay5Plural=vendredis
+PFDay6Plural=samedis
+
+
 
 PFPropose=Proposer
 PFRework=Retravailler

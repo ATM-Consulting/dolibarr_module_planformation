@@ -40,46 +40,20 @@ if (! empty ( $id )) {
 }
 
 switch ($action) {
-	case 'addtimeslot' :
+	case 'addtimeslot':
 		if($session->statut == 0) {
-			$date = GETPOST('date', 'alpha');
+			$type = GETPOST('type');
 			$heure_debut = GETPOST('heure_debut', 'alpha');
 			$heure_fin = GETPOST('heure_fin', 'alpha');
-	
-			if(strcmp($heure_debut, $heure_fin) < 0) {
-				$TDate = explode('/', $date);
-	
-				$dateSQL = $TDate[2] . '-' . $TDate[1] . '-' . $TDate[0] . ' ';
-				$date_debut = $dateSQL.$heure_debut.':00';
-				$date_fin = $dateSQL.$heure_fin.':00';
-	
-				if(! $session->hasCreneauxBetween($PDOdb, $date_debut, $date_fin)) {
-					$THeureDebut = explode(':', $heure_debut);
-					$THeureFin = explode(':', $heure_fin);
-	
-					$creneau->fk_session = $session->rowid;
-					$creneau->debut = dol_mktime($THeureDebut[0], $THeureDebut[1], 0, $TDate[1], $TDate[0], $TDate[2]);
-					$creneau->fin = dol_mktime($THeureFin[0], $THeureFin[1], 0, $TDate[1], $TDate[0], $TDate[2]);
-	
-					if($creneau->debut >= $session->date_debut && $creneau->fin <= ($session->date_fin + 86400)) { // date_fin -> le jour de la fin à minuit, on rajoute un jour en rajoutant 86400s
-						$dureeHeures = ($creneau->fin - $creneau->debut) / 3600;
+
+			if($type == 'creneau') {
+				$date = GETPOST('date', 'alpha');
 		
-						$session->duree_planifiee += $dureeHeures;
-		
-						if($session->duree_planifiee <= $formation->duree) {
-							$session->save($PDOdb);
-							$creneau->save($PDOdb);
-						} else {
-							setEventMessage($langs->trans('PFSessionTooMuchTimePlanned'), 'errors');
-						}
-					} else {
-						setEventMessage($langs->trans('PFTimeSlotOutOfSessionDates'), 'errors');
-					}
-				} else {
-					setEventMessage($langs->trans('PFTimeSlotOverlap'), 'errors');
-				}
+				$session->addCreneau($PDOdb, $date, $heure_debut, $heure_fin);
 			} else {
-				setEventMessage($langs->trans('PFStartTimeMustBeBeforeEndTime'), 'errors');
+				$date_recurrence = GETPOST('date_recurrence', 'alpha');
+
+				
 			}
 		} else {
 			setEventMessage($langs->trans('PFTryingToEditAValidatedSession'), 'errors');
@@ -182,6 +156,7 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 		print '<tr class="liste_titre"><td colspan="5">' . $langs->trans ( 'PFAddNewSessionTimeSlot' ) . '</td></tr>';
 	
 		if($session->duree_planifiee < $formation->duree) {
+/*
 			print '<tr class="liste_titre">';
 			print '<th class="liste_titre">' . $langs->trans ( 'Date' ) . '</th>';
 			print '<th class="liste_titre">' . $langs->trans ( 'PFStartTime' ) . '</th>';
@@ -189,17 +164,36 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 			print '<th class="liste_titre">' . '' . '</th>';
 			print '<th class="liste_titre">&nbsp;</th>';
 			print '</tr>';
-		
+*/		
 			$formCore = new TFormCore ( $_SERVER ['PHP_SELF'] . '?id=' . $session->id, 'formAddAttendee', 'POST' );
 		
 			print '<tr class="impair">';
-			print '<td>' . $formCore->calendrier('', 'date', '') . '</td>';
-			print '<td>' . $formCore->timepicker('', 'heure_debut', '') . '</td>';
-			print '<td>' . $formCore->timepicker('', 'heure_fin', ''). '</td>';
+
+			print '<td>';
+			print '<input type="radio" name="type" id="type_creneau" value="creneau" checked /> <label for="type_creneau">' . $langs->trans('AddASingleTimeSlotOn') . '</label> ';
+			print $formCore->calendrier('', 'date', ''). '...<br /><br />';
+			print '<input type="radio" name="type" id="type_recurrence" value="recurrence" /> <label for="type_recurrence">'; 
+			print $langs->trans('PFAddATimeSlotEvery') . '<br />';
+
+			print '<ul style="list-style-type:none">';
+			$week_start = isset($conf->global->MAIN_START_WEEK) ? $conf->global->MAIN_START_WEEK : 1;
+			for($i = $week_start; $i < $week_start + 7; $i++) {
+				$day = $i % 7;
+				print '<li><input type="checkbox" name="day' . $day . '" id="day' . $day . '" /> <label for="day' . $day . '">' . $langs->trans('PFDay'.$day.'Plural') . '</label></li>';
+			}
+			print '</ul>';
+			
+			print $langs->trans('PFduringNWeeks', $formCore->texte('', 'nb_recurrence', 1, 2));
+			print ' ' . $langs->trans('PFfromDate') . ' ' . $formCore->calendrier('', 'date_recurrence', '');
+			print '...</label> ';
+			print '</td>';
+
+			print '<td>... ' . $langs->trans('PFfromTime') . ' ' . $formCore->timepicker('', 'heure_debut', '') . '...</td>';
+			print '<td>... ' . $langs->trans('PFtoTime') . ' '. $formCore->timepicker('', 'heure_fin', ''). '</td>';
 			print '<td>' . '' . '</td>';
 			print '<td align="right">' . $formCore->hidden ( 'action', 'addtimeslot' ) . $formCore->hidden ( 'fk_session', $session->rowid ) . $formCore->btsubmit ( $langs->trans ( 'Add' ), 'addtimeslot' ) . '</td>';
 			print '</tr>';
-		
+
 			$formCore->end();
 		
 		} else {
