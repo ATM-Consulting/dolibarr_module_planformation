@@ -124,15 +124,18 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 
 	print '<table class="liste centpercent">';
 	print '<tr class="liste_titre">';
-	print '<th class="liste_titre">' . $langs->trans ( 'Date' ) . '</th>';
+	print '<th class="liste_titre" style="width:30%">' . $langs->trans ( 'Date' ) . '</th>';
 	print '<th class="liste_titre">' . $langs->trans ( 'PFStartTime' ) . '</th>';
 	print '<th class="liste_titre">' . $langs->trans ( 'PFEndTime' ) . '</th>';
 	print '<th class="liste_titre">' . $langs->trans ( 'Duration' ) . '</th>';
 	print '<th class="liste_titre">&nbsp;</th>';
 	print '</tr>';
-	
-	$nbCreneaux = count ( $TCreneaux );
 
+
+	print '<tr><td colspan="5"><i><b>' . $langs->trans('PFSessionStart') . '</b> : ' . dol_print_date($session->date_debut, '%A %d %B %Y'). '</i></td></tr>';
+
+	$nbCreneaux = count ( $TCreneaux );
+	
 	$dureeTotaleSecs = 0;
 
 	foreach ( $TCreneaux AS $c ) {
@@ -149,7 +152,7 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 		$dureeTotaleSecs += $duree;
 
 		print '<tr>';
-		print '<td>' . dol_print_date($date_debut, '%A %d %B %Y') . '</td>';
+		print '<td style="padding-left:40px">' . dol_print_date($date_debut, '%A %d %B %Y') . '</td>';
 		print '<td>' . dol_print_date($date_debut, '%R'). '</td>';
 		print '<td>' . dol_print_date($date_fin, '%R'). '</td>';
 		print '<td>' . secondesToHHMM($duree). '</td>';
@@ -158,14 +161,14 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 	}
 
 	if ($nbCreneaux == 0) {
-		print '<tr class="impair"><td colspan="5" align="center">';
+		print '<tr><td colspan="5" align="center">';
 		print $langs->trans ( 'PFSessionNoTimeSlot' );
 		print '</td></tr>';
+		print '<tr><td colspan="5"><i><b>' . $langs->trans('PFSessionEnd') . '</b> : ' . dol_print_date($session->date_fin, '%A %d %B %Y'). '</i></td></tr>';
 	} else {
 		print '<tr class="impair">';
-		print '<td></td>';
-		print '<td></td>';
-		print '<td align="right"><b>' . $langs->trans('PFPlannedTime') . '</b></td>';
+		print '<td colspan="2"><i><b>' . $langs->trans('PFSessionEnd') . '</b> : ' . dol_print_date($session->date_fin, '%A %d %B %Y'). '</i></td>';
+		print '<td align="right"><b>' . $langs->trans('PFTotalTimePlanned') . '</b> :</td>';
 		print '<td>' . secondesToHHMM($dureeTotaleSecs). ' (' . $langs->trans('PFOverTimePlannedForThisFormation', secondesToHHMM(3600 * $formation->duree)) . ')</td>';
 		print '<td></td>';
 		print '</tr>';

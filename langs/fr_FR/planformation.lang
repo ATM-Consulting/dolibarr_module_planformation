@@ -101,6 +101,7 @@ PFCalendar=Calendrier
 PFStartTime=Heure début
 PFEndTime=Heure fin
 PFPlannedTime=Temps planifié
+PFTotalTimePlanned=Total temps planifié
 PFOverTimePlannedForThisFormation=sur %s de temps prévu pour cette formation
 PFSessionTooMuchTimePlanned=Ce créneau ferait dépasser la durée totale de la formation
 PFFormationTimePlanned=Vous avez planifié la totalité du temps prévu pour cette formation
@@ -116,6 +117,8 @@ PFTryingToEditAValidatedSession=Impossible de modifier une session déjà valid�
 PFCannotValidateASessionWithNoTimeSlot=Veuillez programmer au moins un créneau pour valider cette session de formation.
 PFCannotValidateASessionWithNoAttendees=Veuillez inscrire au moins un participant pour valider cette session de formation.
 PFTryingToValidateANonDraftSession=Impossible de valider une session qui n'est pas un brouillon
+PFSessionStart=Début de la session
+PFSessionEnd=Fin de la session
 
 PFPropose=Proposer
 PFRework=Retravailler
