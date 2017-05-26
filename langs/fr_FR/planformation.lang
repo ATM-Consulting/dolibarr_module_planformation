@@ -126,6 +126,7 @@ PFfromDate=à partir du
 PFfromTime=de
 PFtoTime=à
 PFSessionNotFound=La session demandée n'a pas été trouvée
+PFMassActions=Actions de masse
 
 #Days as per date('w') => Sunday is 0
 PFDay0=dimanche
@@ -154,8 +155,9 @@ PFProposeConfirm=Êtes-vous sûr(e) de vouloir proposer ce plan de formation ?
 PFReworkConfirm=Êtes-vous sûr(e) de vouloir retravailler ce plan de formation ?
 PFAbandonConfirm=Êtes-vous sûr(e) de vouloir abandonner ce plan de formation ?
 PFReopenConfirm=Êtes-vous sûr(e) de vouloir rouvrir ce plan de formation ?
-PFValidateConfirm=Etes-vous sûr(e) de vouloir valider ce plan de formation ?
-PFDeleteConfirm=Etes-vous sûr(e) de vouloir supprimer ce plan de formation ?
+PFValidateConfirm=Êtes-vous sûr(e) de vouloir valider ce plan de formation ?
+PFDeleteConfirm=Êtes-vous sûr(e) de vouloir supprimer ce plan de formation ?
+PFMassActionConfirm=Êtes-vous sûr(e) de vouloir effectuer cette action de masse ?
 
 
 PFSessionValidateConfirm=Êtes-vous sûr(e) de vouloir valider cette session de formation ?

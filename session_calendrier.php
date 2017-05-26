@@ -135,6 +135,23 @@ switch ($action) {
 		exit;
 	break;
 
+	case 'massaction':
+		// var_dump($_REQUEST);
+		if(! empty($_REQUEST['deletetimeslot']) || ! empty($_REQUEST['deletetimeslot_x']) || ! empty($_REQUEST['deletetimeslot_y'])) {
+			$rowids = GETPOST('rowids', 'alpha');
+			$TRowidCreneaux = explode(';', $rowids);
+
+			foreach($TRowidCreneaux AS $creneauId) {
+				$creneauMassAction = new TCreneauSession;
+				$creneauMassAction->load($PDOdb, $creneauId);
+				$creneauMassAction->delete($PDOdb);
+			}
+		}
+
+		header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $session->rowid);
+		exit;
+	break;
+
 	case 'list' :
 	default :
 		_list ( $PDOdb, $session, $formation, $creneau );
@@ -149,6 +166,8 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau, $mode = 'view') {
 	print load_fiche_titre ( $langs->trans ( 'PFSessionCalendar' ), '' );
 	
 	$TCreneaux = $session->getCreneaux ( $PDOdb );
+	
+	$nbCreneaux = count ( $TCreneaux );
 
 	$timeSlotToEdit = GETPOST('timeslot', 'int');
 
@@ -158,20 +177,33 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau, $mode = 'view') {
 	print '<th class="liste_titre">' . $langs->trans ( 'PFStartTime' ) . '</th>';
 	print '<th class="liste_titre">' . $langs->trans ( 'PFEndTime' ) . '</th>';
 	print '<th class="liste_titre">' . $langs->trans ( 'Duration' ) . '</th>';
-	print '<th class="liste_titre">&nbsp;</th>';
+	print '<th class="liste_titre" align="right">';
+
+	if($session->statut == 0 && $mode != 'edittimeslot' && $nbCreneaux > 0) {
+		$formCore = new TFormCore ($_SERVER ['PHP_SELF'] . '?id=' . $session->id, 'formCalendarMassAction', 'POST');
+	
+		print $langs->trans('PFMassActions');
+
+		print $formCore->hidden('action', 'massaction') . $formCore->hidden('rowids', $c->rowid);
+		print $formCore->checkbox1('', 'everythingIsSelected' , '', false, ' style="vertical-align:-15%"') . '&nbsp';
+		print $formCore->btImg($langs->trans('Modify'), 'edittimeslot', dol_buildpath('/theme/eldy/img/edit.png', 1), ' style="padding:0;vertical-align:-25%;visibility:hidden"') . ' ';
+		print $formCore->btImg($langs->trans('Delete'), 'deletetimeslot', dol_buildpath('/theme/eldy/img/delete.png', 1), ' style="padding:0;vertical-align:-25%"');
+		
+		$formCore->end();
+	}
+
+	print '</th>';
 	print '</tr>';
 
 
 	print '<tr><td colspan="5"><i><b>' . $langs->trans('PFSessionStart') . '</b> : ' . dol_print_date($session->date_debut, '%A %d %B %Y'). '</i></td></tr>';
 
-	$nbCreneaux = count ( $TCreneaux );
 	
 	$dureeTotaleSecs = 0;
+	
 
 	foreach ( $TCreneaux AS $c ) {
-		$actionsButtons = '';
-
-
+		$actionButtons = '';
 
 		$date_debut = dol_stringtotime(str_replace(' ', 'T', $c->debut), 0);
 		$date_fin = dol_stringtotime(str_replace(' ', 'T', $c->fin), 0);
@@ -181,10 +213,10 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau, $mode = 'view') {
 
 		print '<tr>';
 
-		if($session->statut == 0 && $mode = 'edittimeslot' && $c->rowid == $timeSlotToEdit) {
+		if($session->statut == 0 && $mode == 'edittimeslot' && $c->rowid == $timeSlotToEdit) {
 			$formCore = new TFormCore ( $_SERVER ['PHP_SELF'] . '?id=' . $session->id, 'formEditTimeSlot'.$c->rowid, 'POST' );
 
-			$actionButtons.= $formCore->hidden('action', 'savetimeslot') . $formCore->hidden('timeslot', $c->rowid) . $formCore->hidden('type', 'creneau');
+			$actionButtons = $formCore->hidden('action', 'savetimeslot') . $formCore->hidden('timeslot', $c->rowid) . $formCore->hidden('type', 'creneau');
 			$actionButtons.= $formCore->btImg($langs->trans('Modify'), 'savetimeslot', dol_buildpath('/theme/eldy/img/tick.png', 1));
 			$actionButtons.= '<a href="' . $_SERVER['PHP_SELF'] . '?id=' . $session->id . '">' . img_picto($langs->trans('Cancel'), 'close') . '</a>';
 
@@ -196,8 +228,9 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau, $mode = 'view') {
 
 			$formCore->end();
 		} else {
-			if($session->statut == 0) {
-				$actionButtons = '<a href="' . $_SERVER ['PHP_SELF'] . '?id=' . $session->id . '&action=edittimeslot&timeslot=' . $c->rowid . '">' . img_picto ( '', 'edit' ) . '</a>';
+			if($session->statut == 0 && $mode != 'edittimeslot') {
+				$actionButtons = $formCore->checkbox1('', 'selectTimeslot'.$c->rowid, '', false, '', 'massActionCheckbox') . '&nbsp;';
+				$actionButtons.= '<a href="' . $_SERVER ['PHP_SELF'] . '?id=' . $session->id . '&action=edittimeslot&timeslot=' . $c->rowid . '">' . img_picto ( '', 'edit' ) . '</a>&nbsp;';
 				$actionButtons.= '<a href="' . $_SERVER ['PHP_SELF'] . '?id=' . $session->id . '&action=deletetimeslot&timeslot=' . $c->rowid . '">' . img_picto ( '', 'delete' ) . '</a>';
 			}
 
@@ -233,15 +266,6 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau, $mode = 'view') {
 		print '<tr class="liste_titre"><td colspan="5">' . $langs->trans ( 'PFAddNewSessionTimeSlot' ) . '</td></tr>';
 	
 		if($session->duree_planifiee < $formation->duree) {
-/*
-			print '<tr class="liste_titre">';
-			print '<th class="liste_titre">' . $langs->trans ( 'Date' ) . '</th>';
-			print '<th class="liste_titre">' . $langs->trans ( 'PFStartTime' ) . '</th>';
-			print '<th class="liste_titre">' . $langs->trans ( 'PFEndTime' ) . '</th>';
-			print '<th class="liste_titre">' . '' . '</th>';
-			print '<th class="liste_titre">&nbsp;</th>';
-			print '</tr>';
-*/		
 			$formCore = new TFormCore ( $_SERVER ['PHP_SELF'] . '?id=' . $session->id, 'formAddTimeSlot', 'POST' );
 		
 			print '<tr>';
@@ -279,6 +303,48 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau, $mode = 'view') {
 	}
 	
 	print "</table>";
+
+	if($session->statut == 0 && $mode != 'edittimeslot') {
+?>
+	<script type="text/javascript">
+	$(document).ready(function() {
+		$('input#everythingIsSelected').on('change', function() {
+			if(this.checked) {
+				$('input.massActionCheckbox').prop('checked', true);
+			} else {
+				$('input.massActionCheckbox').prop('checked', false);
+			}
+		});
+
+		$('form#formCalendarMassAction').on('submit', function(e) {
+			var confirm = window.confirm('<?php echo str_replace("'", "\\'", $langs->trans('PFMassActionConfirm')); ?>');
+
+			if(confirm) {
+				var IDs = '';
+				var checkboxes = $('input.massActionCheckbox:checked');
+
+				for(i = 0; i < checkboxes.length; i++) {
+
+					var id = $(checkboxes[i]).attr('id').replace('selectTimeslot', '');
+					if(i == 0) {
+						IDs = id.toString();
+					} else {
+						IDs = IDs + ';' + id; 
+					}
+				}
+
+				console.log(IDs);
+
+				$('input[type=hidden][name=rowids]').val(IDs);
+			}
+
+			return confirm;
+		});		
+	});
+	</script>
+
+<?php
+	}
 
 	llxFooter();
 }
