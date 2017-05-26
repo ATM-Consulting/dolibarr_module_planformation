@@ -257,7 +257,7 @@ function _list_sessions(&$PDOdb, &$formation) {
 					, 'nbLine' => $conf->liste_limit
 			)
 			, 'link' => array(
-					'ref' => '<a href="?id=@rowid@">@val@</a>'
+					'ref' => '<a href="' . dol_buildpath('/planformation/session.php', 1) . '?id=@rowid@">@val@</a>'
 					, 'formation' => '<a href="' . dol_buildpath('/planformation/formation.php' , 1) . '?id=@fk_formation@">@val@</a>'
 					, 'opca' => img_picto('', 'object_company', '', 0). ' <a href="?id=@fk_opca@">@val@</a>'
 			)
