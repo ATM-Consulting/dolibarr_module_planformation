@@ -49,11 +49,77 @@ switch ($action) {
 			if($type == 'creneau') {
 				$date = GETPOST('date', 'alpha');
 		
-				$session->addCreneau($PDOdb, $date, $heure_debut, $heure_fin);
+				$session->addCreneau($PDOdb, $formation, $date, $heure_debut, $heure_fin);
 			} else {
-				$date_recurrence = GETPOST('date_recurrence', 'alpha');
 
-				
+// TODO NETTOYAGE !
+
+//var_dump($_REQUEST);
+				$date_recurrence = GETPOST('date_recurrence', 'alpha');
+				$nb_semaines = GETPOST('nb_semaines', 'int');
+
+				if($nb_semaines > 0) {
+//var_dump($date_recurrence);
+//var_dump($nb_semaines);
+					$week_start = isset($conf->global->MAIN_START_WEEK) ? $conf->global->MAIN_START_WEEK : 1;
+//var_dump($week_start);
+
+					$TDateRecurrence = explode('/', $date_recurrence);
+
+					$dateRecurrenceTimeStamp = dol_mktime(0, 0, 0, $TDateRecurrence[1], $TDateRecurrence[0], $TDateRecurrence[2], true); // heures, minutes, secondes, MOIS, jour, année, isGMT
+//var_dump(date('l d/m/Y', $dateRecurrenceTimeStamp));
+
+					$jourRecurrence = date('w', $dateRecurrenceTimeStamp); // 0 => dimanche, 1 => lundi, etc.
+//var_dump($jourRecurrence);
+
+					$noDayChosen = true;
+
+					for($i = 0; $i < 7; $i++) { // Pour chaque jour en partant de la date de départ de la récurrence
+					//for($j = $jourRecurrence; $j < $jourRecurrence + 7; $j++) { // Pour chaque jour en partant de la date de départ de la récurrence
+						$day = ($i + $jourRecurrence) % 7; // on récupère le jour revoyé par date('w', ...);
+	
+						$dateFirstWeek = $dateRecurrenceTimeStamp + $i * 24 * 60 * 60;
+
+//var_dump($_REQUEST['day'.$day]);
+//var_dump(date('l d/m/Y', $dateFirstWeek));
+						if(! empty($_REQUEST['day'.$day])) {
+							$noDayChosen = false;
+	
+							for($s = 0; $s < $nb_semaines; $s++) { // Pour chaque semaine
+//var_dump($s);
+								$dateTimeStamp = $dateFirstWeek + $s * 7 * 24 * 60 * 60;
+								$date = date('d/m/Y', $dateTimeStamp);
+//var_dump($date);
+//var_dump(date('l d/m/Y', $dateTimeStamp). ' ' . $heure_debut . '-' . $heure_fin);
+	
+								$session->addCreneau($PDOdb, $formation, $date, $heure_debut, $heure_fin);
+							}
+						}
+					}
+
+
+					if($noDayChosen) {
+						setEventMessage($langs->trans('PFNoRecurringDayChosen'), 'errors');
+					}
+				} else {
+					setEventMEssage($langs->trans('PFYouMustSetAtLeast1WeekRecurrence'), 'errors');
+				}
+
+/*
+				$timestampDebutSemaine1 = $dateRecurrenceTimeStamp - ($jourRecurrence - $week_start) * 3600 * 24;
+
+				if($week_start > $jourRecurrence) { // 
+					
+				}
+
+var_dump(date('l d/m/Y', $timestampDebutSemaine1));
+
+
+				for($s = 0; $s <= $nb_recurrence; $s++) { // on traite nb_recurrence + 1 semaines si ça déborde
+
+
+				}
+*/			
 			}
 		} else {
 			setEventMessage($langs->trans('PFTryingToEditAValidatedSession'), 'errors');
@@ -165,9 +231,9 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 			print '<th class="liste_titre">&nbsp;</th>';
 			print '</tr>';
 */		
-			$formCore = new TFormCore ( $_SERVER ['PHP_SELF'] . '?id=' . $session->id, 'formAddAttendee', 'POST' );
+			$formCore = new TFormCore ( $_SERVER ['PHP_SELF'] . '?id=' . $session->id, 'formAddTimeSlot', 'POST' );
 		
-			print '<tr class="impair">';
+			print '<tr>';
 
 			print '<td>';
 			print '<input type="radio" name="type" id="type_creneau" value="creneau" checked /> <label for="type_creneau">' . $langs->trans('AddASingleTimeSlotOn') . '</label> ';
@@ -183,7 +249,7 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 			}
 			print '</ul>';
 			
-			print $langs->trans('PFduringNWeeks', $formCore->texte('', 'nb_recurrence', 1, 2));
+			print $langs->trans('PFduringNWeeks', $formCore->texte('', 'nb_semaines', 1, 2));
 			print ' ' . $langs->trans('PFfromDate') . ' ' . $formCore->calendrier('', 'date_recurrence', '');
 			print '...</label> ';
 			print '</td>';

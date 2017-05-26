@@ -207,7 +207,7 @@ class TSessionFormation extends TObjetStd
 		return false;
 	}
 
-	function addCreneau(&$PDOdb, $date, $heure_debut, $heure_fin) {
+	function addCreneau(&$PDOdb, $formation, $date, $heure_debut, $heure_fin) {
 		global $langs;
 
 		if(strcmp($heure_debut, $heure_fin) < 0) {
@@ -224,15 +224,17 @@ class TSessionFormation extends TObjetStd
 				$creneau = new TCreneauSession;
 				
 				$creneau->fk_session = $this->rowid;
-				$creneau->debut = dol_mktime($THeureDebut[0], $THeureDebut[1], 0, $TDate[1], $TDate[0], $TDate[2]);
+				$creneau->debut = dol_mktime($THeureDebut[0], $THeureDebut[1], 0, $TDate[1], $TDate[0], $TDate[2]); // heures, minutes, secondes, MOIS, jour, année
 				$creneau->fin = dol_mktime($THeureFin[0], $THeureFin[1], 0, $TDate[1], $TDate[0], $TDate[2]);
 				
 				if($creneau->debut >= $this->date_debut && $creneau->fin <= ($this->date_fin + 86400)) { // date_fin -> le jour de la fin à minuit, on rajoute un jour en rajoutant 86400s
 					$dureeHeures = ($creneau->fin - $creneau->debut) / 3600;
-					
-					$this->duree_planifiee += $dureeHeures;
-					
-					if($this->duree_planifiee <= $formation->duree) {
+
+// var_dump($this->duree_planifiee);
+// var_dump($dureeHeures);
+					if($this->duree_planifiee + $dureeHeures <= $formation->duree) {
+						$this->duree_planifiee += $dureeHeures;
+
 						$this->save($PDOdb);
 						$creneau->save($PDOdb);
 					} else {
