@@ -8,6 +8,10 @@
 		<td>[session.formation; strconv=no;]</td>
 	</tr>
 	<tr>
+		<td class="titlefieldcreate">[trans.statut; strconv=no;]</td>
+		<td>[session.statut; strconv=no;]</td>
+	</tr>
+	<tr>
 		<td class="titlefieldcreate">[trans.interne_externe; strconv=no;]</td>
 		<td>[session.interne_externe; strconv=no;]</td>
 	</tr>

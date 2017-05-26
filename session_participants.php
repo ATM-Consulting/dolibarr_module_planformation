@@ -142,9 +142,9 @@ function _list(&$PDOdb, &$session, &$formation, &$participant) {
 */
 			$actionsButtons = '';
 			
-			//if($pf->statut == 0) {
-			$actionButtons = '<a href="' . $_SERVER['PHP_SELF'] . '?id=' . $session->id . '&action=deleteattendee&attendee=' . $p->rowid. '">' . img_picto('', 'delete') . '</a>';
-			//}
+			if($session->statut == 0) {
+				$actionButtons = '<a href="' . $_SERVER['PHP_SELF'] . '?id=' . $session->id . '&action=deleteattendee&attendee=' . $p->rowid. '">' . img_picto('', 'delete') . '</a>';
+			}
 			
 			print '<tr>';
 			print '<td>' . img_picto('', 'object_user') . ' <a href="'. dol_buildpath('/user/card.php' , 1) .'?id=' . $p->fk_user . '">' . $p->lastname. ' ' . $p->firstname . '</a></td>';
@@ -167,7 +167,7 @@ function _list(&$PDOdb, &$session, &$formation, &$participant) {
 	
 	// Ajout nouveau participant
 	
-	// if($mode == 'view' && $pf->statut == 0) {
+	if($session->statut == 0) {
 		print '<tr class="liste_titre"><td colspan="2">' . $langs->trans('PFAddNewSessionAttendee') . '</td></tr>';
 		
 		
@@ -201,7 +201,7 @@ function _list(&$PDOdb, &$session, &$formation, &$participant) {
 
 		$formCore->end();
 
-	//}
+	}
 	
 	print "</table>";
 

@@ -34,7 +34,7 @@ class TSessionFormation extends TObjetStd
 
 		parent::add_champs('ref', array('type'=>'string','index'=>true));
 		parent::add_champs('fk_formation', array('type'=>'integer','index'=>true));
-		parent::add_champs('fk_user_modification,fk_user_creation,entity', array('type'=>'integer','index'=>true));
+		parent::add_champs('fk_user_modification,fk_user_creation,entity,statut', array('type'=>'integer','index'=>true));
 		parent::add_champs('fk_opca,is_interne', array('type'=>'integer'));
 		parent::add_champs('budget,budget_consomme,prise_en_charge_estimee,prise_en_charge_acceptee,prise_en_charge_reelle,duree_planifiee', array('type'=>'float'));
 		parent::add_champs('date_debut,date_fin', array('type'=>'date'));
@@ -205,5 +205,39 @@ class TSessionFormation extends TObjetStd
 		}
 
 		return false;
+	}
+
+	function validate(&$PDOdb) {
+		global $langs;
+
+		if($this->statut == 0) {
+			$TParticipants = $this->getParticipants($PDOdb);
+
+			if(count($TParticipants) > 0) {
+				$TCreneaux = $this->getCreneaux($PDOdb);
+
+				if(count($TCreneaux) > 0) {
+					$this->statut = 1;
+					$this->save($PDOdb);
+				} else {
+					setEventMessage($langs->trans('PFCannotValidateASessionWithNoTimeSlot'), 'errors');
+				}
+			} else {
+				setEventMessage($langs->trans('PFCannotValidateASessionWithNoAttendees'), 'errors');
+			}
+		} else {
+			setEventMessage($langs->trans('PFTryingToValidateANonDraftSession'), 'errors');
+		}
+	}
+
+	function reopen(&$PDOdb) {
+		global $langs;
+
+		if($this->statut == 1) {
+			$this->statut = 0;
+			$this->save($PDOdb);
+		} else {
+			setEventMessage($langs->trans('PFTryingToReopenANonValidatedSession'), 'errors');
+		}
 	}
 }

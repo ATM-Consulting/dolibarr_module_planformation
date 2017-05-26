@@ -112,6 +112,10 @@ PFDraft=Brouillon
 PFInWaitOfAnswer=En attente
 PFValidated=Validé
 PFAbandoned=Abandonné
+PFTryingToEditAValidatedSession=Impossible de modifier une session déjà validée
+PFCannotValidateASessionWithNoTimeSlot=Veuillez programmer au moins un créneau pour valider cette session de formation.
+PFCannotValidateASessionWithNoAttendees=Veuillez inscrire au moins un participant pour valider cette session de formation.
+PFTryingToValidateANonDraftSession=Impossible de valider une session qui n'est pas un brouillon
 
 PFPropose=Proposer
 PFRework=Retravailler
@@ -124,6 +128,13 @@ PFAbandonConfirm=Êtes-vous sûr(e) de vouloir abandonner ce plan de formation ?
 PFReopenConfirm=Êtes-vous sûr(e) de vouloir rouvrir ce plan de formation ?
 PFValidateConfirm=Etes-vous sûr(e) de vouloir valider ce plan de formation ?
 PFDeleteConfirm=Etes-vous sûr(e) de vouloir supprimer ce plan de formation ?
+
+
+PFSessionValidateConfirm=Êtes-vous sûr(e) de vouloir valider cette session de formation ?
+PFSessionDeleteConfirm=Êtes-vous sûr(e) de vouloir supprimer cette session de formation ?
+PFSessionReopenConfirm=Êtes-vous sûr(e) de vouloir rouvrir cette session de formation ?
+
+
 
 #
 # Champs

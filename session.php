@@ -61,7 +61,13 @@ switch($action) {
 
 	case 'new':
 	case 'edit':
-		_card($PDOdb, $session, $formation, 'edit');
+		if($session->statut == 1) {
+			setEventMessage($langs->trans('PFTryingToEditAValidatedSession'), 'errors');
+
+			_card($PDOdb, $session, $formation, 'view');
+		} else {
+			_card($PDOdb, $session, $formation, 'edit');
+		}
 	break;
 
 	case 'info':
@@ -71,6 +77,27 @@ switch($action) {
 	case 'list':
 		_list($PDOdb, $session, $formation);
 	break;
+
+	case 'delete':
+		$session->delete($PDOdb);
+
+		header('Location: ' . $_SERVER['PHP_SELF'] . '?action=list');
+		exit;
+	break;
+
+	case 'validate':
+		$session->validate($PDOdb);
+
+		header('Location: ' . $_SERVER['PHP_SELF'] . '?id='. $session->rowid);
+		exit;
+		break;
+		
+	case 'reopen':
+		$session->reopen($PDOdb);
+		
+		header('Location: ' . $_SERVER['PHP_SELF'] . '?id='. $session->rowid);
+		exit;
+		break;
 
 	default:
 		if(empty($id)) {
@@ -89,7 +116,7 @@ function _list(&$PDOdb, &$session, &$formation) {
 
 	$list = new TListviewTBS('session');
 
-	$sql = "SELECT s.rowid, ref, fk_formation, f.title AS formation, date_debut, date_fin, fk_opca, soc.nom AS opca, budget";
+	$sql = "SELECT s.rowid, ref, fk_formation, f.title AS formation, IF(s.statut = 1, '" . $langs->trans('Validated') . "', '" . $langs->trans('Draft') . "') AS statut, date_debut, date_fin, fk_opca, soc.nom AS opca, budget";
 	$sql.= " FROM " . $session->get_table() . " AS s";
 	$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "planform_formation AS f ON (f.rowid=s.fk_formation)";
 	$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "societe AS soc ON (soc.rowid=s.fk_opca)";
@@ -133,6 +160,7 @@ function _list(&$PDOdb, &$session, &$formation) {
 		, 'title' => array(
 				'ref' => $langs->trans('Reference')
 				, 'formation' => $langs->trans('PFFormation')
+				, 'statut' => $langs->trans('Status')
 				, 'date_debut' => $langs->trans('DateStart')
 				, 'date_fin' => $langs->trans('DateEnd')
 				, 'budget' => $langs->trans('PFBudget')
@@ -146,6 +174,14 @@ function _list(&$PDOdb, &$session, &$formation) {
 						'recherche' => true
 						, 'table' => 'f'
 						, 'field' => 'title'
+				)
+				, 'statut' => array(
+						'recherche' => array(
+								0 => 'Draft'
+								, 1 => 'Validated'
+						)
+						, 'table' => 's'
+						, 'to_translate' => 'yes'
 				)
 				, 'date_debut' => array(
 						'recherche' => 'calendars'
@@ -205,7 +241,9 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 	$btCancel = '<a class="butAction" href="javascript:history.back()">' . $langs->trans('Cancel') . '</a>';
 
 	$btModifier = '<a class="butAction" href="' . dol_buildpath('/planformation/session.php?id=' . $session->rowid . '&action=edit', 1) . '">' . $langs->trans('Modify') . '</a>';
-
+	$btValider = '<a class="butAction" href="' . dol_buildpath('/planformation/session.php?id=' . $session->rowid . '&action=validate', 1) . '" onclick="javascript:return confirm(\'' . $langs->trans('PFSessionValidateConfirm') . '\')">' . $langs->trans('Validate') . '</a>';
+	$btSupprimer = '<a class="butAction" href="' . dol_buildpath('/planformation/session.php?id=' . $session->rowid . '&action=delete', 1) . '" onclick="javascript:return confirm(\'' . $langs->trans('PFSessionDeleteConfirm') . '\')">' . $langs->trans('Delete') . '</a>';
+	$btRouvrir = '<a class="butAction" href="' . dol_buildpath('/planformation/session.php?id=' . $session->rowid . '&action=reopen', 1) . '" onclick="javascript:return confirm(\'' . $langs->trans('PFSessionReopenConfirm') . '\')">' . $langs->trans('PFReopen') . '</a>';
 
 	$TFormations = array('0' => '');
 
@@ -225,7 +263,7 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 	$opcaId = empty($session->fk_opca) ? $formation->fk_opca : $session->fk_opca;
 
 
-	
+	$TDataSession['statut'] = ($session->statut == 1) ? $langs->trans('Validated') : $langs->trans('Draft');
 	$TDataSession['duree_planifiee'] = secondesToHHMM(3600 * $session->duree_planifiee);
 	if(! empty($formation->rowid)) {
 		$TDataSession['duree_planifiee'] .= ' (' . $langs->trans('PFOverTimePlannedForThisFormation', secondesToHHMM(3600 * $formation->duree)) . ')';
@@ -268,7 +306,11 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 			$TDataSession['opca'] = $langs->trans('PFNoOPCASelected');
 		}
 
-		$buttons = $btModifier;
+		if($session->statut == 0) {
+			$buttons = $btModifier . ' ' . $btValider. ' ' . $btSupprimer;
+		} else {
+			$buttons = $btRouvrir . ' ' . $btSupprimer;
+		}
 	}
 
 
@@ -277,6 +319,7 @@ function _card(&$PDOdb, &$session, &$formation, $mode = 'view') {
 			, 'trans' => array(
 					'ref' => $langs->trans('Reference')
 					, 'formation' => $langs->trans('PFFormation')
+					, 'statut' => $langs->trans('Status')
 					, 'interne_externe' => $langs->trans('PFInternalExternal')
 					, 'date_debut' => $langs->trans('DateStart')
 					, 'date_fin' => $langs->trans('DateEnd')

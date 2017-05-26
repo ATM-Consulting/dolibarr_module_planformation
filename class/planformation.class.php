@@ -247,7 +247,8 @@ class TPlanFormation extends TObjetStd
 		$sql = "SELECT s.rowid, s.ref, f.title, s.date_debut, s.date_fin";
 		$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session AS s";
 		$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "planform_formation AS f ON (f.rowid = s.fk_formation)";
-		$sql.= " WHERE s.rowid NOT IN (";
+		$sql.= " WHERE s.statut = 1";
+		$sql.= " AND s.rowid NOT IN (";
 		$sql.= "	SELECT fk_session AS rowid";
 		$sql.= "	FROM " . MAIN_DB_PREFIX . "planform_assoc_session";
 		$sql.= " )";

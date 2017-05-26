@@ -224,13 +224,13 @@ function _list_sessions(&$PDOdb, &$formation) {
 
 	$list = new TListviewTBS('session');
 	
-	$sql = "SELECT s.rowid, ref, s.fk_formation, f.title AS formation, date_debut, date_fin, fk_opca, soc.nom AS opca, budget";
+	$sql = "SELECT s.rowid, ref, s.fk_formation, f.title AS formation, IF(s.statut = 1, '" . $langs->trans('Validated') . "', '" . $langs->trans('Draft') . "') AS statut, date_debut, date_fin, fk_opca, soc.nom AS opca, budget";
 	$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session AS s";
 	$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "planform_formation AS f ON (f.rowid=s.fk_formation)";
 	$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "societe AS soc ON (soc.rowid=s.fk_opca)";
 	$sql.= " WHERE fk_formation = " . $formation->rowid;
 	
-	
+
 	$TOrder = array('rowid' => 'ASC');
 	
 	$page = GETPOST('page', 'int');
@@ -269,6 +269,7 @@ function _list_sessions(&$PDOdb, &$formation) {
 			, 'title' => array(
 					'ref' => $langs->trans('Reference')
 					, 'formation' => $langs->trans('PFFormation')
+					, 'statut' => $langs->trans('Status')
 					, 'date_debut' => $langs->trans('DateStart')
 					, 'date_fin' => $langs->trans('DateEnd')
 					, 'budget' => $langs->trans('PFBudget')
@@ -282,6 +283,14 @@ function _list_sessions(&$PDOdb, &$formation) {
 							'recherche' => true
 							, 'table' => 'f'
 							, 'field' => 'title'
+					)
+					, 'statut' => array(
+							'recherche' => array(
+									0 => 'Draft'
+									, 1 => 'Validated'
+							)
+							, 'table' => 's'
+							, 'to_translate' => 'yes'
 					)
 					, 'date_debut' => array(
 							'recherche' => 'calendars'
