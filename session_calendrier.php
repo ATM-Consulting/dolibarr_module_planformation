@@ -136,7 +136,6 @@ switch ($action) {
 	break;
 
 	case 'massaction':
-		// var_dump($_REQUEST);
 		if(! empty($_REQUEST['deletetimeslot']) || ! empty($_REQUEST['deletetimeslot_x']) || ! empty($_REQUEST['deletetimeslot_y'])) {
 			$rowids = GETPOST('rowids', 'alpha');
 			$TRowidCreneaux = explode(';', $rowids);
@@ -144,8 +143,13 @@ switch ($action) {
 			foreach($TRowidCreneaux AS $creneauId) {
 				$creneauMassAction = new TCreneauSession;
 				$creneauMassAction->load($PDOdb, $creneauId);
+		
+				$session->duree_planifiee -= ($creneauMassAction->fin - $creneauMassAction->debut) / 3600;
+
 				$creneauMassAction->delete($PDOdb);
 			}
+
+			$session->save($PDOdb);
 		}
 
 		header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $session->rowid);
