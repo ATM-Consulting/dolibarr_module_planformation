@@ -41,6 +41,8 @@ if (! empty ( $id )) {
 
 switch ($action) {
 	case 'addtimeslot':
+	case 'savetimeslot':
+
 		if($session->statut == 0) {
 			$type = GETPOST('type');
 			$heure_debut = GETPOST('heure_debut', 'alpha');
@@ -48,55 +50,45 @@ switch ($action) {
 
 			if($type == 'creneau') {
 				$date = GETPOST('date', 'alpha');
-		
-				$session->addCreneau($PDOdb, $formation, $date, $heure_debut, $heure_fin);
+
+				$creneauId = GETPOST('timeslot', 'int');
+
+				if(! empty($creneauId)) { // Édition créneau
+					$session->addCreneau($PDOdb, $formation, $date, $heure_debut, $heure_fin, $creneauId);
+				} else {
+					$session->addCreneau($PDOdb, $formation, $date, $heure_debut, $heure_fin);
+				}
 			} else {
-
-// TODO NETTOYAGE !
-
-//var_dump($_REQUEST);
 				$date_recurrence = GETPOST('date_recurrence', 'alpha');
 				$nb_semaines = GETPOST('nb_semaines', 'int');
 
 				if($nb_semaines > 0) {
-//var_dump($date_recurrence);
-//var_dump($nb_semaines);
 					$week_start = isset($conf->global->MAIN_START_WEEK) ? $conf->global->MAIN_START_WEEK : 1;
-//var_dump($week_start);
 
 					$TDateRecurrence = explode('/', $date_recurrence);
 
 					$dateRecurrenceTimeStamp = dol_mktime(0, 0, 0, $TDateRecurrence[1], $TDateRecurrence[0], $TDateRecurrence[2], true); // heures, minutes, secondes, MOIS, jour, année, isGMT
-//var_dump(date('l d/m/Y', $dateRecurrenceTimeStamp));
 
 					$jourRecurrence = date('w', $dateRecurrenceTimeStamp); // 0 => dimanche, 1 => lundi, etc.
-//var_dump($jourRecurrence);
 
 					$noDayChosen = true;
 
-					for($i = 0; $i < 7; $i++) { // Pour chaque jour en partant de la date de départ de la récurrence
-					//for($j = $jourRecurrence; $j < $jourRecurrence + 7; $j++) { // Pour chaque jour en partant de la date de départ de la récurrence
-						$day = ($i + $jourRecurrence) % 7; // on récupère le jour revoyé par date('w', ...);
+					for($i = 0; $i < 7; $i++) { // Pour chaque jour
+						$day = ($i + $jourRecurrence) % 7; // on calcule le jour qui serait renvoyé par date('w', ...);
 	
-						$dateFirstWeek = $dateRecurrenceTimeStamp + $i * 24 * 60 * 60;
+						$dateFirstWeek = $dateRecurrenceTimeStamp + $i * 24 * 60 * 60; // Le timestamp du jour de la semaine courant lors de la semaine de départ
 
-//var_dump($_REQUEST['day'.$day]);
-//var_dump(date('l d/m/Y', $dateFirstWeek));
 						if(! empty($_REQUEST['day'.$day])) {
 							$noDayChosen = false;
 	
 							for($s = 0; $s < $nb_semaines; $s++) { // Pour chaque semaine
-//var_dump($s);
-								$dateTimeStamp = $dateFirstWeek + $s * 7 * 24 * 60 * 60;
+								$dateTimeStamp = $dateFirstWeek + $s * 7 * 24 * 60 * 60; // Le timestamp du jour de la semaine courant lors de la semaine $s
 								$date = date('d/m/Y', $dateTimeStamp);
-//var_dump($date);
-//var_dump(date('l d/m/Y', $dateTimeStamp). ' ' . $heure_debut . '-' . $heure_fin);
 	
 								$session->addCreneau($PDOdb, $formation, $date, $heure_debut, $heure_fin);
 							}
 						}
 					}
-
 
 					if($noDayChosen) {
 						setEventMessage($langs->trans('PFNoRecurringDayChosen'), 'errors');
@@ -104,31 +96,24 @@ switch ($action) {
 				} else {
 					setEventMEssage($langs->trans('PFYouMustSetAtLeast1WeekRecurrence'), 'errors');
 				}
-
-/*
-				$timestampDebutSemaine1 = $dateRecurrenceTimeStamp - ($jourRecurrence - $week_start) * 3600 * 24;
-
-				if($week_start > $jourRecurrence) { // 
-					
-				}
-
-var_dump(date('l d/m/Y', $timestampDebutSemaine1));
-
-
-				for($s = 0; $s <= $nb_recurrence; $s++) { // on traite nb_recurrence + 1 semaines si ça déborde
-
-
-				}
-*/			
 			}
 		} else {
 			setEventMessage($langs->trans('PFTryingToEditAValidatedSession'), 'errors');
 		}
 
-		_list ( $PDOdb, $session, $formation, $creneau );
+		header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $session->rowid);
+		exit;
 	break;
 
-	case 'deletetimeslot' :
+	case 'edittimeslot':
+		if($session->statut == 0) {
+			_list ( $PDOdb, $session, $formation, $creneau, 'edittimeslot');
+		} else {
+			setEventMessage($langs->trans('PFTryingToEditAValidatedSession'), 'errors');
+		}
+	break;
+
+	case 'deletetimeslot':
 		if($session->statut == 0) {
 			$timeslotRowid = GETPOST ( 'timeslot' );
 			
@@ -144,7 +129,8 @@ var_dump(date('l d/m/Y', $timestampDebutSemaine1));
 			setEventMessage($langs->trans('PFTryingToEditAValidatedSession'), 'errors');
 		}
 
-		_list ( $PDOdb, $session, $formation, $creneau );
+		header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $session->rowid);
+		exit;
 	break;
 
 	case 'list' :
@@ -153,7 +139,7 @@ var_dump(date('l d/m/Y', $timestampDebutSemaine1));
 }
 
 
-function _list(&$PDOdb, &$session, &$formation, &$creneau) {
+function _list(&$PDOdb, &$session, &$formation, &$creneau, $mode = 'view') {
 	global $langs, $conf;
 	
 	_header_list ( $session, 'calendar' );
@@ -161,6 +147,8 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 	print load_fiche_titre ( $langs->trans ( 'PFSessionCalendar' ), '' );
 	
 	$TCreneaux = $session->getCreneaux ( $PDOdb );
+
+	$timeSlotToEdit = GETPOST('timeslot', 'int');
 
 	print '<table class="liste centpercent">';
 	print '<tr class="liste_titre">';
@@ -181,9 +169,7 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 	foreach ( $TCreneaux AS $c ) {
 		$actionsButtons = '';
 
-		if($session->statut == 0) {
-			$actionButtons = '<a href="' . $_SERVER ['PHP_SELF'] . '?id=' . $session->id . '&action=deletetimeslot&timeslot=' . $c->rowid . '">' . img_picto ( '', 'delete' ) . '</a>';
-		}
+
 
 		$date_debut = dol_stringtotime(str_replace(' ', 'T', $c->debut), 0);
 		$date_fin = dol_stringtotime(str_replace(' ', 'T', $c->fin), 0);
@@ -192,11 +178,34 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau) {
 		$dureeTotaleSecs += $duree;
 
 		print '<tr>';
-		print '<td style="padding-left:40px">' . dol_print_date($date_debut, '%A %d %B %Y') . '</td>';
-		print '<td>' . dol_print_date($date_debut, '%R'). '</td>';
-		print '<td>' . dol_print_date($date_fin, '%R'). '</td>';
-		print '<td>' . secondesToHHMM($duree). '</td>';
-		print '<td align="right">' . $actionButtons . '</td>';
+
+		if($session->statut == 0 && $mode = 'edittimeslot' && $c->rowid == $timeSlotToEdit) {
+			$formCore = new TFormCore ( $_SERVER ['PHP_SELF'] . '?id=' . $session->id, 'formEditTimeSlot'.$c->rowid, 'POST' );
+
+			$actionButtons.= $formCore->hidden('action', 'savetimeslot') . $formCore->hidden('timeslot', $c->rowid) . $formCore->hidden('type', 'creneau');
+			$actionButtons.= $formCore->btImg($langs->trans('Modify'), 'savetimeslot', dol_buildpath('/theme/eldy/img/tick.png', 1));
+			$actionButtons.= '<a href="' . $_SERVER['PHP_SELF'] . '?id=' . $session->id . '">' . img_picto($langs->trans('Cancel'), 'close') . '</a>';
+
+			print '<td style="padding-left:40px">' . $formCore->calendrier('', 'date', dol_print_date($date_debut, '%d/%m/%Y')) . '</td>';
+			print '<td>' . $formCore->timepicker('', 'heure_debut', dol_print_date($date_debut, '%R')). '</td>';
+			print '<td>' . $formCore->timepicker('', 'heure_fin', dol_print_date($date_fin, '%R')). '</td>';
+			print '<td></td>';
+			print '<td align="right">' . $actionButtons . '</td>';
+
+			$formCore->end();
+		} else {
+			if($session->statut == 0) {
+				$actionButtons = '<a href="' . $_SERVER ['PHP_SELF'] . '?id=' . $session->id . '&action=edittimeslot&timeslot=' . $c->rowid . '">' . img_picto ( '', 'edit' ) . '</a>';
+				$actionButtons.= '<a href="' . $_SERVER ['PHP_SELF'] . '?id=' . $session->id . '&action=deletetimeslot&timeslot=' . $c->rowid . '">' . img_picto ( '', 'delete' ) . '</a>';
+			}
+
+			print '<td style="padding-left:40px">' . dol_print_date($date_debut, '%A %d %B %Y') . '</td>';
+			print '<td>' . dol_print_date($date_debut, '%R'). '</td>';
+			print '<td>' . dol_print_date($date_fin, '%R'). '</td>';
+			print '<td>' . secondesToHHMM($duree). '</td>';
+			print '<td align="right">' . $actionButtons . '</td>';
+		}
+
 		print '</tr>';
 	}
 

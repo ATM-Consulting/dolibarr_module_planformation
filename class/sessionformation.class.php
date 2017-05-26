@@ -185,13 +185,17 @@ class TSessionFormation extends TObjetStd
 		return $TRes;
 	}
 
-	function hasCreneauxBetween(&$PDOdb, $date_debut, $date_fin) {
+	function hasCreneauxBetween(&$PDOdb, $date_debut, $date_fin, $except = 0) {
 
 		$sql = "SELECT count(rowid) AS nb";
 		$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session_creneau";
 		$sql.= " WHERE fk_session = " . $this->rowid;
 		$sql.= " AND debut < '" . $date_fin . "'";
 		$sql.= " AND fin > '" . $date_debut . "'";
+
+		if(! empty($except)) {
+			$sql.= "AND rowid != ".$except;
+		}
 
 		$res = $PDOdb->Execute($sql);
 
@@ -207,7 +211,7 @@ class TSessionFormation extends TObjetStd
 		return false;
 	}
 
-	function addCreneau(&$PDOdb, $formation, $date, $heure_debut, $heure_fin) {
+	function addCreneau(&$PDOdb, $formation, $date, $heure_debut, $heure_fin, $idCreneau = 0) {
 		global $langs;
 
 		if(strcmp($heure_debut, $heure_fin) < 0) {
@@ -216,24 +220,35 @@ class TSessionFormation extends TObjetStd
 			$dateSQL = $TDate[2] . '-' . $TDate[1] . '-' . $TDate[0] . ' ';
 			$date_debut = $dateSQL.$heure_debut.':00';
 			$date_fin = $dateSQL.$heure_fin.':00';
-			
-			if(! $this->hasCreneauxBetween($PDOdb, $date_debut, $date_fin)) {
+	
+			if(! $this->hasCreneauxBetween($PDOdb, $date_debut, $date_fin, $idCreneau)) {
 				$THeureDebut = explode(':', $heure_debut);
 				$THeureFin = explode(':', $heure_fin);
 
 				$creneau = new TCreneauSession;
+				$ancienneDuree = 0;
+
+				if(! empty($idCreneau)) {
+					$creneau->load($PDOdb, $idCreneau);
+					$ancienneDuree = $creneau->fin - $creneau->debut;
+				}
+
+				$ancienneDureeHeures = $ancienneDuree / 3600;
 				
 				$creneau->fk_session = $this->rowid;
-				$creneau->debut = dol_mktime($THeureDebut[0], $THeureDebut[1], 0, $TDate[1], $TDate[0], $TDate[2]); // heures, minutes, secondes, MOIS, jour, année
-				$creneau->fin = dol_mktime($THeureFin[0], $THeureFin[1], 0, $TDate[1], $TDate[0], $TDate[2]);
-				
-				if($creneau->debut >= $this->date_debut && $creneau->fin <= ($this->date_fin + 86400)) { // date_fin -> le jour de la fin à minuit, on rajoute un jour en rajoutant 86400s
-					$dureeHeures = ($creneau->fin - $creneau->debut) / 3600;
 
-// var_dump($this->duree_planifiee);
-// var_dump($dureeHeures);
-					if($this->duree_planifiee + $dureeHeures <= $formation->duree) {
-						$this->duree_planifiee += $dureeHeures;
+				$newDebutCreneau = dol_mktime($THeureDebut[0], $THeureDebut[1], 0, $TDate[1], $TDate[0], $TDate[2]); // heures, minutes, secondes, MOIS, jour, année
+				$newFinCreneau = dol_mktime($THeureFin[0], $THeureFin[1], 0, $TDate[1], $TDate[0], $TDate[2]);
+
+				if($newDebutCreneau >= $this->date_debut && $newFinCreneau <= ($this->date_fin + 86400)) { // date_fin -> le jour de la fin à minuit, on rajoute un jour en rajoutant 86400s
+					$nouvelleDureeHeures = ($newFinCreneau - $newDebutCreneau) / 3600;
+
+					if($this->duree_planifiee - $ancienneDureeHeures + $nouvelleDureeHeures <= $formation->duree) {
+						$creneau->debut = $newDebutCreneau;
+						$creneau->fin = $newFinCreneau;
+
+						$this->duree_planifiee -= $ancienneDureeHeures;
+						$this->duree_planifiee += $nouvelleDureeHeures;
 
 						$this->save($PDOdb);
 						$creneau->save($PDOdb);
