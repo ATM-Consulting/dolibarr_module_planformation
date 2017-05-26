@@ -35,7 +35,9 @@ if (! empty ( $id )) {
 		$formation->load ( $PDOdb, $session->fk_formation );
 	}
 } else {
-	// TODO Gérer l'erreur
+	setEventMessage($langs->trans('PFSessionNotFound'), 'errors');
+	
+	header('Location: ' . dol_buildpath('/planformation/session.php', 1) . '?action=list');
 	exit;
 }
 
