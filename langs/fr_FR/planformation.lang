@@ -125,6 +125,7 @@ PFduringNWeeks=pendant %s semaines
 PFfromDate=à partir du
 PFfromTime=de
 PFtoTime=à
+PFSessionNotFound=La session demandée n'a pas été trouvée
 
 #Days as per date('w') => Sunday is 0
 PFDay0=dimanche
