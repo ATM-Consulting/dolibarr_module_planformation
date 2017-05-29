@@ -129,11 +129,16 @@ function _list(&$PDOdb, &$formation) {
 function _info(&$PDOdb, &$formation) {
 	global $langs;
 
+	require_once (DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php');
+
 	_header_card($formation, 'info');
 
-	echo 'INFO';
+	$formation->date_creation = $formation->date_cre;
+	$formation->date_modification = $formation->date_maj;
+	$formation->user_creation = $formation->fk_user_creation;
+	$formation->user_modification = $formation->fk_user_modification;
 
-	// TODO remplir...
+	dol_print_object_info($formation);
 
 	llxFooter();
 }

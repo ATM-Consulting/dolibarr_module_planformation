@@ -207,11 +207,16 @@ function _list(&$PDOdb, &$session, &$formation) {
 function _info(&$PDOdb, &$session) {
 	global $langs;
 
+	require_once (DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php');
+
 	_header_card($session, 'info');
 
-	echo 'INFO';
-
-	// TODO remplir...
+	$session->date_creation = $session->date_cre;
+	$session->date_modification = $session->date_maj;
+	$session->user_creation = $session->fk_user_creation;
+	$session->user_modification = $session->fk_user_modification;
+	
+	dol_print_object_info($session);
 
 	llxFooter();
 }

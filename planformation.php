@@ -366,10 +366,8 @@ function _info(TPDOdb &$PDOdb, TPlanFormation &$pf) {
 	$pf->date_modification = $pf->date_maj;
 	$pf->user_creation = $pf->fk_user_creation;
 	$pf->user_modification = $pf->fk_user_modification;
-	print '<table width="100%"><tr><td>';
+
 	dol_print_object_info($pf);
-	print '</td></tr></table>';
-	print '</div>';
 
 	llxFooter();
 }
