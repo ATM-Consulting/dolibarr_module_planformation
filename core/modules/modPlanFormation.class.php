@@ -434,7 +434,7 @@ class modPlanFormation extends DolibarrModules
 				'titre' => 'PFFormationSessions',
 				'mainmenu' => 'planformation',
 				'leftmenu' => 'pfformationsessionleft',
-				'url' => '/planformation/formation.php?action=list',
+				'url' => '/planformation/session.php?action=list',
 				'langs' => 'planformation@planformation',
 				'position' => 100 + $r,
 				'enabled' => '$conf->planformation->enabled',
