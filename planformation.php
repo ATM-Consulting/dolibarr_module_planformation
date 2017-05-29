@@ -27,7 +27,6 @@ require ('./class/planformation.class.php');
 require ('./class/planformsession.class.php');
 require ('./class/sessionformation.class.php');
 require ('./class/dictionnaire.class.php');
-require ('./class/pfusergroup.class.php');
 
 $langs->load('planformation@planformation');
 
