@@ -32,11 +32,7 @@ class TCreneauSession extends TObjetStd
 		
 		parent::set_table(MAIN_DB_PREFIX . 'planform_session_creneau');
 		
-		//parent::add_champs('ref', array('type'=>'string','index'=>true));
 		parent::add_champs('fk_session', array('type'=>'integer','index'=>true));
-		//parent::add_champs('fk_user_modification,fk_user_creation,entity', array('type'=>'integer','index'=>true));
-		//parent::add_champs('fk_opca,is_interne', array('type'=>'integer'));
-		//parent::add_champs('budget,budget_consomme,prise_en_charge_estimee,prise_en_charge_acceptee,prise_en_charge_reelle', array('type'=>'float'));
 		parent::add_champs('debut,fin', array('type'=>'date','index'=>true));
 
 		parent::_init_vars();

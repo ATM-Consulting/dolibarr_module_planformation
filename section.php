@@ -308,7 +308,7 @@ function _card(TPDOdb &$PDOdb, TSection &$pfs, $mode = '') {
                 
                 $data['fk_section_parente'] = $sectionParente->title;
 	}
-	// Todo mandatory fields
+
 
 	print $TBS->render('./tpl/section.tpl.php', array (),
 

@@ -35,7 +35,7 @@ class TFormation extends TObjetStd
 		parent::set_table(MAIN_DB_PREFIX . 'planform_formation');
 
 		parent::add_champs('title', array('type'=>'string'));
-		parent::add_champs('budget_total, duree', array('type'=>'float'));
+		parent::add_champs('duree', array('type'=>'float'));
 		parent::add_champs('fk_user_modification,fk_user_creation,entity', array('type'=>'integer','index'=>true));
 		
 		parent::_init_vars();
@@ -45,7 +45,7 @@ class TFormation extends TObjetStd
 	}
 
 	function getAllWithCondition(&$PDOdb, $filter = '1') {
-		$sql = "SELECT rowid, title, budget_total, duree";
+		$sql = "SELECT rowid, title, duree";
 		$sql.= " FROM " . $this->get_table();
 		$sql.= " WHERE ".$filter;
 
@@ -58,7 +58,6 @@ class TFormation extends TObjetStd
 				$TReturn[] = array(
 					'rowid' => $PDOdb->Get_field('rowid')
 					, 'title' => $PDOdb->Get_field('title')
-					, 'budget_total' => $PDOdb->Get_field('budget_total')
 					, 'duree' => $PDOdb->Get_field('duree')
 				);
 			}

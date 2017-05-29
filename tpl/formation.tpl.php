@@ -11,10 +11,6 @@
 		<td class="titlefieldcreate">[trans.duree; strconv=no;]</td>
 		<td>[formation.duree; strconv=no;]</td>
 	</tr>
-	<tr>
-		<td class="titlefieldcreate">[trans.budget_total; strconv=no;]</td>
-		<td>[formation.budget_total; strconv=no;]</td>
-	</tr>
 </table>
 
 <div class="tabsAction">[buttons; strconv=no]</div>

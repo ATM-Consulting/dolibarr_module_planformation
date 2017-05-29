@@ -75,7 +75,7 @@ function _list(&$PDOdb, &$formation) {
 
 	$list = new TListviewTBS('formation');
 
-	$sql = "SELECT rowid, title, CONCAT(duree, ' h') AS duree, budget_total FROM " . $formation->get_table();
+	$sql = "SELECT rowid, title, CONCAT(duree, ' h') AS duree FROM " . $formation->get_table();
 
 	$TOrder = array('rowid' => 'ASC');
 
@@ -109,7 +109,6 @@ function _list(&$PDOdb, &$formation) {
 				'rowid' => 'ID'
 				, 'title' => $langs->trans('Title')
 				, 'duree' => $langs->trans('Duration')
-				, 'budget_total' => $langs->trans('PFTotalBudget')
 		)
 		, 'search' => array (
 				'title' => array (
@@ -170,8 +169,6 @@ function _card(&$PDOdb, &$formation, $mode = 'view') {
 	$btModifier = '<a class="butAction" href="' . dol_buildpath('/planformation/formation.php?id=' . $formation->rowid . '&action=edit', 1) . '">' . $langs->trans('Modify') . '</a>';
 
 
-	$TDataFormation['budget_total'] = price(0, 1, $langs, 1, -1, -1, 'auto');
-
 	if($mode == 'edit') {
 		$TDataFormation['id'] = empty($formation->rowid) ? $formation->getNextId($PDOdb) : $formation->rowid.$form->hidden('rowid', $formation->rowid);
 		$TDataFormation['title'] = $form->texte('', 'title', $formation->title, 64);
@@ -195,7 +192,6 @@ function _card(&$PDOdb, &$formation, $mode = 'view') {
 					'id' => 'ID'
 					, 'title' => $langs->transnoentitiesnoconv('Title')
 					, 'duree' => $langs->transnoentitiesnoconv('Duration')
-					, 'budget_total' => $langs->transnoentitiesnoconv('PFTotalBudget')
 			)
 			, 'buttons' => $buttons
 	));

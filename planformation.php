@@ -800,7 +800,5 @@ function _listPlanFormSection(TPDOdb &$PDOdb, TPlanFormation &$pf, TTypeFinancem
 	}
 
 	print "</table>";
-
-	print $addJS;
 }
 

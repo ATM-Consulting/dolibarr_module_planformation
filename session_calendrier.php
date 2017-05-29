@@ -328,16 +328,14 @@ function _list(&$PDOdb, &$session, &$formation, &$creneau, $mode = 'view') {
 				var checkboxes = $('input.massActionCheckbox:checked');
 
 				for(i = 0; i < checkboxes.length; i++) {
-
 					var id = $(checkboxes[i]).attr('id').replace('selectTimeslot', '');
+
 					if(i == 0) {
 						IDs = id.toString();
 					} else {
 						IDs = IDs + ';' + id; 
 					}
 				}
-
-				console.log(IDs);
 
 				$('input[type=hidden][name=rowids]').val(IDs);
 			}
