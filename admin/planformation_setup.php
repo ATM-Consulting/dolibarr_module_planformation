@@ -355,7 +355,7 @@ $form = new Form($db);
 
 foreach ( $dirmodels as $reldir ) {
 	$dir = dol_buildpath($reldir . "core/modules/planformation/");
-	
+
 	if (is_dir($dir)) {
 		$handle = opendir($dir);
 		if (is_resource($handle)) {
@@ -365,25 +365,25 @@ foreach ( $dirmodels as $reldir ) {
 						&& (substr($file, dol_strlen($file) - 3, 3) == 'php')) {
 							$file = substr($file, 0, dol_strlen($file) - 4);
 							require_once $dir . $file . '.php';
-							
+
 							/**
 							 *
 							 * @var ModeleNumRefPlanFormation $module
 							 */
 							$module = new $file();
-							
+
 							// Show modules according to features level
 							if ($module->version == 'development' && $conf->global->MAIN_FEATURES_LEVEL < 2)
 								continue;
 								if ($module->version == 'experimental' && $conf->global->MAIN_FEATURES_LEVEL < 1)
 									continue;
-									
+
 									if ($module->isEnabled()) {
 										$var = ! $var;
 										print '<tr ' . $bc[$var] . '><td>' . $module->nom . "</td><td>\n";
 										print $module->info();
 										print '</td>';
-										
+
 										// Show example of numbering module
 										print '<td class="nowrap">';
 										$tmp = $module->getExample();
@@ -394,7 +394,7 @@ foreach ( $dirmodels as $reldir ) {
 											else
 												print $tmp;
 												print '</td>' . "\n";
-												
+
 												print '<td align="center">';
 												if ($conf->global->PF_SESSION_ADDON == "$file") {
 													print img_picto($langs->trans("Activated"), 'switch_on');
@@ -404,10 +404,10 @@ foreach ( $dirmodels as $reldir ) {
 													print '</a>';
 												}
 												print '</td>';
-												
-												$module_dest = new TSection();
+
+												$module_dest = new TSectionPlanFormation();
 												$module_dest->_init_vars();
-												
+
 												// Info
 												$htmltooltip = '';
 												$htmltooltip .= '' . $langs->trans("Version") . ': <b>' . $module->getVersion() . '</b><br>';
@@ -421,11 +421,11 @@ foreach ( $dirmodels as $reldir ) {
 														$htmltooltip .= $langs->trans($module->error) . '<br>';
 													}
 												}
-												
+
 												print '<td align="center">';
 												print $form->textwithpicto('', $htmltooltip, 1, 0);
 												print '</td>';
-												
+
 												print "</tr>\n";
 									}
 						}

@@ -21,27 +21,29 @@
 
 class TFormation extends TObjetStd
 {
-	
+
 	protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
-	
+
 	/**
 	 * __construct
 	 */
 	function __construct() {
-		global $langs;
+		global $langs,$conf;
 
 		dol_include_once('/planformation/class/sessionformation.class.php');
-		
+
 		parent::set_table(MAIN_DB_PREFIX . 'planform_formation');
 
 		parent::add_champs('title', array('type'=>'string'));
 		parent::add_champs('duree', array('type'=>'float'));
 		parent::add_champs('fk_user_modification,fk_user_creation,entity', array('type'=>'integer','index'=>true));
-		
+
 		parent::_init_vars();
 		parent::start();
 
 		$this->setChild('TSessionFormation', 'fk_formation');
+
+		$this->entity = $conf->entity;
 	}
 
 	function getAllWithCondition(&$PDOdb, $filter = '1') {
@@ -50,7 +52,7 @@ class TFormation extends TObjetStd
 		$sql.= " WHERE ".$filter;
 
 		$res = $PDOdb->Execute($sql);
-		
+
 		$TReturn = array();
 
 		if($res) {

@@ -28,7 +28,7 @@ class TTypeFinancement extends TObjetStd
 	 *
 	 */
 	function __construct() {
-		global $langs;
+		global $langs,$conf;
 
 		parent::set_table(MAIN_DB_PREFIX . 'planform_c_type_financement');
 		parent::add_champs('active,entity', 'type=entier;index;');
@@ -36,6 +36,8 @@ class TTypeFinancement extends TObjetStd
 
 		parent::_init_vars();
 		parent::start();
+
+		$this->entity = $conf->entity;
 	}
 
 	/**

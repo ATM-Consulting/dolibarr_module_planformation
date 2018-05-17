@@ -21,15 +21,15 @@
 
 class TSessionFormation extends TObjetStd
 {
-	
+
 	protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
-	
+
 	/**
 	 * __construct
 	 */
 	function __construct() {
-		global $langs;
-		
+		global $langs,$conf;
+
 		parent::set_table(MAIN_DB_PREFIX . 'planform_session');
 
 		parent::add_champs('ref', array('type'=>'string','index'=>true));
@@ -38,10 +38,11 @@ class TSessionFormation extends TObjetStd
 		parent::add_champs('fk_opca,is_interne', array('type'=>'integer'));
 		parent::add_champs('budget,budget_consomme,prise_en_charge_estimee,prise_en_charge_acceptee,prise_en_charge_reelle,duree_planifiee', array('type'=>'float'));
 		parent::add_champs('date_debut,date_fin', array('type'=>'date'));
-		
+
 		parent::_init_vars();
 		parent::start();
 
+		$this->entity = $conf->entity;
 	}
 
 
@@ -55,7 +56,7 @@ class TSessionFormation extends TObjetStd
 		return $res->maxid + 1;
 	}
 
-	
+
 	/**
 	 * Returns the reference to the following non used plan formation used depending on the active numbering module
 	 * defined into LEAD_ADDON
@@ -67,11 +68,11 @@ class TSessionFormation extends TObjetStd
 	function getNextRef($fk_user = null, Societe $objsoc = null) {
 		global $conf, $langs;
 		$langs->load("planformation@planformation");
-		
+
 		$dirmodels = array_merge(array (
 				'/'
 		), ( array ) $conf->modules_parts['models']);
-		
+
 		if (! empty($conf->global->PF_SESSION_ADDON)) {
 			foreach ( $dirmodels as $reldir ) {
 				$dir = dol_buildpath($reldir . "core/modules/planformation/");
@@ -79,22 +80,22 @@ class TSessionFormation extends TObjetStd
 					$handle = opendir($dir);
 					if (is_resource($handle)) {
 						$var = true;
-						
+
 						while ( ($file = readdir($handle)) !== false ) {
 							if ($file == $conf->global->PF_SESSION_ADDON . '.php') {
 								$file = substr($file, 0, dol_strlen($file) - 4);
 								require_once $dir . $file . '.php';
-								
+
 								$module = new $file();
-								
+
 								// Chargement de la classe de numerotation
 								$classname = $conf->global->PF_SESSION_ADDON;
-								
+
 								$obj = new $classname();
-								
+
 								$numref = "";
 								$numref = $obj->getNextValue($fk_user, $objsoc, $this);
-								
+
 								if ($numref != "") {
 									return $numref;
 								} else {
@@ -111,7 +112,7 @@ class TSessionFormation extends TObjetStd
 			$this->errors[]= $langs->trans("Error") . " " . $langs->trans("ErrorModuleSetupNotComplete");
 			return -1;
 		}
-		
+
 		return null;
 	}
 
@@ -129,36 +130,36 @@ class TSessionFormation extends TObjetStd
 		$sql.= " AND fk_session = " . $this->rowid;
 
 		$res = $PDOdb->Execute($sql);
-		
+
 		if($res) {
 			for($i = 0; $i < $res->rowCount(); $i++) {
 				$TRes[] = $PDOdb->Get_line();
 			}
 		}
-		
+
 		return $TRes;
 	}
-	
+
 	function getUsersNotSignedUp(&$PDOdb) {
 		$TRes = array();
-		
+
 		if($this->rowid <= 0) {
 			return false;
 		}
-		
+
 		$sql = "SELECT rowid, firstname, lastname";
 		$sql.= " FROM " . MAIN_DB_PREFIX . "user";
 		$sql.= " WHERE statut = 1";
 		$sql.= " AND rowid NOT IN (SELECT fk_user AS rowid FROM " . MAIN_DB_PREFIX . "planform_session_participant WHERE fk_session = " . $this->rowid. ")";
 
 		$res = $PDOdb->Execute($sql);
-		
+
 		if($res) {
 			for($i = 0; $i < $res->rowCount(); $i++) {
 				$TRes[] = $PDOdb->Get_line();
 			}
 		}
-		
+
 		return $TRes;
 	}
 
@@ -175,7 +176,7 @@ class TSessionFormation extends TObjetStd
 		$sql.= " ORDER BY debut ASC";
 
 		$res = $PDOdb->Execute($sql);
-		
+
 		if($res) {
 			for($i = 0; $i < $res->rowCount(); $i++) {
 				$TRes[] = $PDOdb->Get_line();
@@ -216,11 +217,11 @@ class TSessionFormation extends TObjetStd
 
 		if(strcmp($heure_debut, $heure_fin) < 0) {
 			$TDate = explode('/', $date);
-			
+
 			$dateSQL = $TDate[2] . '-' . $TDate[1] . '-' . $TDate[0] . ' ';
 			$date_debut = $dateSQL.$heure_debut.':00';
 			$date_fin = $dateSQL.$heure_fin.':00';
-	
+
 			if(! $this->hasCreneauxBetween($PDOdb, $date_debut, $date_fin, $idCreneau)) {
 				$THeureDebut = explode(':', $heure_debut);
 				$THeureFin = explode(':', $heure_fin);
@@ -234,7 +235,7 @@ class TSessionFormation extends TObjetStd
 				}
 
 				$ancienneDureeHeures = $ancienneDuree / 3600;
-				
+
 				$creneau->fk_session = $this->rowid;
 
 				$newDebutCreneau = dol_mktime($THeureDebut[0], $THeureDebut[1], 0, $TDate[1], $TDate[0], $TDate[2]); // heures, minutes, secondes, MOIS, jour, année

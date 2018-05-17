@@ -7,11 +7,11 @@ if ($user->societe_id)
 	$socid = $user->societe_id;
 
 $result = restrictedArea($user, 'planformation', 0, 'planformation');
-	
+
 require_once('./class/formation.class.php');
 
 $langs->load('planformation@planformation');
-	
+
 $PDOdb = new TPDOdb;
 
 $id = GETPOST('id', 'int');
@@ -76,6 +76,7 @@ function _list(&$PDOdb, &$formation) {
 	$list = new TListviewTBS('formation');
 
 	$sql = "SELECT rowid, title, CONCAT(duree, ' h') AS duree FROM " . $formation->get_table();
+	$sql.= " WHERE entity IN (".$conf->entity.")";
 
 	$TOrder = array('rowid' => 'ASC');
 
@@ -209,11 +210,11 @@ function _card(&$PDOdb, &$formation, $mode = 'view') {
 
 function _header_card(&$formation, $active) {
 	global $langs;
-	
+
 	dol_include_once('/planformation/lib/planformation.lib.php');
-	
+
 	llxHeader('', $langs->trans("PFFormation"),'','',0,0);
-	
+
 	$head = formation_prepare_head($formation);
 	dol_fiche_head($head, $active, $langs->trans('PFFormation'), 0);
 }
@@ -224,27 +225,27 @@ function _list_sessions(&$PDOdb, &$formation) {
 	global $langs;
 
 	$list = new TListviewTBS('session');
-	
+
 	$sql = "SELECT s.rowid, ref, s.fk_formation, f.title AS formation, IF(s.statut = 1, '" . $langs->trans('Validated') . "', '" . $langs->trans('Draft') . "') AS statut, date_debut, date_fin, fk_opca, soc.nom AS opca, budget";
 	$sql.= " FROM " . MAIN_DB_PREFIX . "planform_session AS s";
 	$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "planform_formation AS f ON (f.rowid=s.fk_formation)";
 	$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "societe AS soc ON (soc.rowid=s.fk_opca)";
 	$sql.= " WHERE fk_formation = " . $formation->rowid;
-	
+
 
 	$TOrder = array('rowid' => 'ASC');
-	
+
 	$page = GETPOST('page', 'int');
 	$orderDown = GETPOST('orderDown', 'alpha');
 	$orderUp = GETPOST('orderUp', 'alpha');
-	
+
 	if(! empty($orderDown))
 		$TOrder = array($orderDown => 'DESC');
-		
+
 	if(! empty($orderUp))
 		$TOrder = array($orderUp => 'ASC');
-			
-			
+
+
 	$form = new TFormCore($_SERVER['PHP_SELF'] . '?id=' . $formation->rowid, 'session_list', 'POST');
 
 	echo $list->render($PDOdb, $sql, array(
@@ -307,7 +308,7 @@ function _list_sessions(&$PDOdb, &$formation) {
 			)
 			, 'orderBy' => $TOrder
 	));
-	
+
 	$form->end();
 
 	print '<div class="tabsAction">';

@@ -28,7 +28,7 @@ class TPlanFormation extends TObjetStd
 	 * __construct
 	 */
 	function __construct() {
-		global $langs;
+		global $langs,$conf;
 
 		parent::set_table(MAIN_DB_PREFIX . 'planform');
 		parent::add_champs('fk_type_financement', array('type'=>'integer','index'=>true));
@@ -50,6 +50,8 @@ class TPlanFormation extends TObjetStd
 		$this->date_end = $dt->getTimestamp();
 
 		$this->setChild('TSectionPlanFormation', 'fk_planform');
+
+		$this->entity = $conf->entity;
 	}
 
 	/**
@@ -181,40 +183,40 @@ class TPlanFormation extends TObjetStd
 
 		return false;
 	}
-	
+
 	public function rework(&$PDOdb) {
 		if($this->statut == 1) {
 			$this->statut = 0;
 			$this->save($PDOdb);
-			
+
 			return true;
 		}
 
 		return false;
 	}
-	
+
 	public function validate(&$PDOdb) {
 		if($this->statut == 1) {
 			$this->statut = 2;
 			$this->save($PDOdb);
-			
+
 			return true;
 		}
 
 		return false;
 	}
-	
+
 	public function abandon(&$PDOdb) {
 		if($this->statut != 2) {
 			$this->statut = 3;
 			$this->save($PDOdb);
-			
+
 			return true;
 		}
 
 		return false;
 	}
-	
+
 	public function reopen(&$PDOdb) {
 		if($this->statut >= 2) {
 			$this->statut = 0;
@@ -225,7 +227,7 @@ class TPlanFormation extends TObjetStd
 
 		return false;
 	}
-	
+
 	public function getRemainingBudget(&$PDOdb) {
 
 		$spf = new TSectionPlanFormation;
@@ -275,7 +277,7 @@ class TPlanFormation extends TObjetStd
 		$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "planform_formation AS f ON (f.rowid = s.fk_formation)";
 		$sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "planform_assoc_session AS pas ON (s.rowid = pas.fk_session)";
 		$sql.= " WHERE pas.fk_planform = " . $this->rowid;
-		
+
 		$res = $PDOdb->Execute($sql);
 		if($res) {
 			for($i = 0; $i < $res->rowCount(); $i++) {
@@ -289,13 +291,13 @@ class TPlanFormation extends TObjetStd
 
 	public function getAllSections(&$PDOdb) {
 		$TRes = array();
-		
+
 		$sql = "SELECT ps.rowid, title, fk_usergroup, fk_section_parente, budget, nom";
 		$sql.= " FROM " . MAIN_DB_PREFIX. "planform_section as ps";
 		$sql.= " INNER JOIN " . MAIN_DB_PREFIX . "usergroup as ug ON ps.fk_usergroup=ug.rowid";
 		$sql.= " WHERE fk_planform = " . $this->rowid;
 
-		
+
 		$res = $PDOdb->Execute($sql);
 
 		if($res !== false) {
@@ -324,7 +326,7 @@ class TPlanFormation extends TObjetStd
 class TSectionPlanFormation extends TObjetStd
 {
 	function __construct() {
-		global $langs;
+		global $langs,$conf;
 
 		parent::set_table(MAIN_DB_PREFIX . 'planform_section');
 
@@ -339,15 +341,17 @@ class TSectionPlanFormation extends TObjetStd
 		parent::start();
 
 		$this->setChild('TPlanFormationSession', 'fk_section_parente');
+
+		$this->entity = $conf->entity;
 	}
 
 
 	public function delete(&$PDOdb) {
-            
+
 		$sql = 'UPDATE '.$this->get_table().'
 				SET fk_section_parente=0
 				WHERE fk_section_parente='.$this->rowid;
-            
+
 		$PDOdb->Execute($sql);
 		parent::delete($PDOdb);
 	}
@@ -357,9 +361,9 @@ class TSectionPlanFormation extends TObjetStd
 
 		$TSectionsFilles = array();
 		$this->getSectionsFilles($PDOdb, $TSectionsFilles, $this->fk_planform, $this->id, false);
-        	
+
 		$budgetFilles = 0;
-        	
+
 		foreach($TSectionsFilles as $sectionFille) {
 			$budgetFilles += $sectionFille['budget'];
 		}
@@ -369,7 +373,7 @@ class TSectionPlanFormation extends TObjetStd
 
 
 	public function getSectionsFilles(&$PDOdb, &$TSectionEnfantes, $fkPlanform, $fkSectionPF, $recur = true) {
-            
+
 		$sql = 'SELECT ps.rowid, title, fk_section_parente, fk_usergroup, budget, nom
 				FROM '.$this->get_table().' as ps
 				INNER JOIN '.MAIN_DB_PREFIX.'usergroup as ug ON ps.fk_usergroup=ug.rowid
@@ -381,7 +385,7 @@ class TSectionPlanFormation extends TObjetStd
 		if ($result !== false) {
 			while ( $PDOdb->Get_line() ) {
 				$fkSectionPFFille = $PDOdb->Get_field('rowid');
-                    
+
 				$TSectionEnfantes[] = array(
 					'rowid' => $PDOdb->Get_field('rowid')
 					, 'title' => $PDOdb->Get_field('title')
